@@ -1,0 +1,46 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+//export default function proxy(request: NextRequest) {
+export default function middleware(request: NextRequest) {
+  const token = request.cookies.get("auth_token");
+
+  const protectedRoutes = ["/departo", "/sysadmin"];
+
+  if (
+    protectedRoutes.some((path) => request.nextUrl.pathname.startsWith(path))
+  ) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  return NextResponse.next();
+}
+
+/**
+Option 1: Set an expiration time when creating the cookie
+When you set the cookie (e.g. after login), use the maxAge or expires option:
+
+response.cookies.set("auth_token", "some_secure_token", {
+  httpOnly: true,
+  secure: true,
+  path: "/",
+  maxAge: 60 * 60 * 24, // expires in 1 day
+});
+ */
+
+/**
+✅ Option 2: Delete the cookie manually (e.g. during logout)
+To expire the cookie immediately, set it again with maxAge: 0:
+
+const response = NextResponse.redirect(new URL("/", request.url));
+response.cookies.set("auth_token", "", {
+  httpOnly: true,
+  secure: true,
+  path: "/",
+  maxAge: 0, // ✅ expires immediately
+});
+
+return response;
+ */

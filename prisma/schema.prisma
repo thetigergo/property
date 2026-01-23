@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+  // url      = env("DATABASE_URL")
+  schemas  = ["ppe", "prc"]
+}
+
+model disposition {
+  wastedno     Int
+  property     String       @db.VarChar(32)
+  peritems     String       @id @db.VarChar(30)
+  expcode      String       @db.VarChar(11)
+  subdtl       String?      @db.VarChar(18)
+  tyepo        String       @db.Char(5)
+  itemname     String?      @db.VarChar
+  specifyd     String?      @db.VarChar
+  acquired     DateTime     @db.Date
+  uselife      Int          @db.SmallInt
+  unitcost     Float
+  catdetails   catdetails?  @relation(fields: [subdtl], references: [catdtld], onDelete: NoAction, onUpdate: NoAction)
+  dispossessed dispossessed @relation(fields: [wastedno], references: [wastedno], map: "dispossessed_disposenum_fkey")
+
+  @@schema("ppe")
+}
+
+model dispossessed {
+  wastedno    Int           @id
+  preparar    DateTime      @db.Date
+  empkey      String?       @db.VarChar(36)
+  designate   String?       @db.VarChar(50)
+  opesina     String        @db.VarChar(7)
+  details     String?       @db.VarChar
+  livedate    DateTime      @default(now()) @db.Timestamp(6)
+  user_id     String        @db.VarChar(10)
+  respworker  String?       @db.VarChar(90)
+  respranggo  String?       @db.VarChar(45)
+  receivedby  String?       @db.VarChar(90)
+  receiverank String?       @db.VarChar(45)
+  disposition disposition[]
+  employees   employees?    @relation(fields: [empkey], references: [empkey], onDelete: Restrict)
+  offices     offices       @relation(fields: [opesina], references: [offcid])
+  userlogs    userlogs      @relation(fields: [user_id], references: [userid])
+
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model documento {
+  icsareno   Int
+  petsaha    DateTime    @id @default(dbgenerated("(now())::timestamp without time zone")) @db.Timestamp(6)
+  raster     Int?        @db.Oid
+  filepath   String?     @db.VarChar
+  filetype   String?     @db.VarChar(9)
+  physical   Bytes?
+  mrproperty mrproperty? @relation(fields: [icsareno], references: [icsareno], onDelete: Restrict)
+
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model employees {
+  empkey                            String         @id @db.VarChar(7)
+  lname                             String?        @db.VarChar(30)
+  fname                             String?        @db.VarChar(30)
+  mname                             String?        @db.VarChar(30)
+  suffix                            String?        @db.VarChar(7)
+  designate                         String?        @db.VarChar(50)
+  jstatus                           Int            @default(1) @db.SmallInt
+  sec_code                          String?        @db.VarChar(32)
+  offcid                            String?        @db.VarChar(7)
+  offcids                           String[]       @db.VarChar(7)
+  dispossessed                      dispossessed[]
+  offices_employees_offcidTooffices offices?       @relation("employees_offcidTooffices", fields: [offcid], references: [offcid], onDelete: Restrict, map: "employeed_offcid_fkey")
+  mrproperty                        mrproperty[]
+  offices_offices_headedToemployees offices[]      @relation("offices_headedToemployees")
+
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model mrdetalyes {
+  icsareno    Int
+  catdtld     String      @db.VarChar(18)
+  quantiy     Int         @db.SmallInt
+  issued      String      @db.Char(5)
+  specifyd    String?     @db.VarChar
+  unitcost    Float
+  itemno      Int?        @default(0) @db.SmallInt
+  acquired    DateTime    @db.Date
+  uselife     Int         @db.SmallInt
+  property    String      @db.VarChar(32)
+  acronyear   String?     @db.VarChar(7)
+  lastseq     Int?        @db.SmallInt
+  acknowledge Float?
+  catdetails  catdetails  @relation(fields: [catdtld], references: [catdtld])
+  mrproperty  mrproperty  @relation(fields: [icsareno], references: [icsareno])
+  mritemize   mritemize[]
+
+  @@id([icsareno, property])
+  @@index([acronyear], map: "acronyear_index")
+  @@schema("ppe")
+}
+
+model mritemize {
+  property   String?     @db.VarChar(32)
+  peritems   String      @db.VarChar(30)
+  balhen     DateTime?   @db.Timestamp(6)
+  wasted     DateTime?   @db.Timestamp(6)
+  icsareno   Int
+  occurred   DateTime    @id @default(now()) @db.Timestamp(6)
+  wastedno   Int?
+  jev_num    String?     @db.VarChar(23)
+  mrdetalyes mrdetalyes? @relation(fields: [icsareno, property], references: [icsareno, property], map: "mritemize_property_fkey")
+
+  @@unique([peritems, icsareno], map: "mritemize_ikey")
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model mrproperty {
+  icsareno   Int          @id(map: "property_pkey")
+  preparar   DateTime     @db.Date
+  empkey     String?      @db.VarChar(7)
+  designate  String?      @db.VarChar(50)
+  opesina    String       @db.VarChar(7)
+  expcode    String       @db.VarChar(11)
+  details    String?      @db.VarChar
+  nagdawat   String?      @db.VarChar(60)
+  ranggo     String?      @db.VarChar(50)
+  livedate   DateTime     @default(now()) @db.Timestamp(6)
+  user_id    String       @db.VarChar(10)
+  printed    Boolean      @default(true)
+  verified   Boolean      @default(false)
+  gikanni    String?      @db.VarChar(7)
+  documento  documento[]
+  mrdetalyes mrdetalyes[]
+  categories categories   @relation(fields: [expcode], references: [cat_id])
+  employees  employees?   @relation(fields: [empkey], references: [empkey], onDelete: Restrict, map: "property_empkey_fkey")
+  offices    offices      @relation(fields: [opesina], references: [offcid], map: "property_opesina_fkey")
+  userlogs   userlogs     @relation(fields: [user_id], references: [userid], map: "property_user_id_fkey")
+
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model realestate {
+  gihimo     DateTime?   @db.Date
+  pidnum     String      @id @db.VarChar(12)
+  declared   String?     @db.VarChar(50)
+  tagiya     String?     @db.VarChar(99)
+  matang     String?     @db.VarChar(19)
+  tyipo      String?     @db.VarChar(18)
+  taxdec     String?     @db.VarChar(12)
+  titulo     String?     @db.VarChar(12)
+  lotno      String?     @db.VarChar(12)
+  lugar      String?     @db.VarChar(25)
+  metric     String?     @db.VarChar(7)
+  nabutang   String?     @db.VarChar(50)
+  acqcost    Float?
+  market     Float?
+  userid     String      @db.VarChar(10)
+  actually   DateTime    @default(now()) @db.Timestamp(6)
+  confirma   Boolean?    @default(false)
+  catdetails catdetails? @relation(fields: [tyipo], references: [catdtld], onDelete: Restrict)
+
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model setparam {
+  frdate DateTime  @db.Date
+  todate DateTime? @default(dbgenerated("'2999-12-31'::date")) @db.Date
+  icsare Float?
+  activo Boolean   @default(true)
+  seqnos Int       @id @default(autoincrement()) @db.SmallInt
+
+  @@schema("ppe")
+}
+
+model signatured {
+  indexkey Int     @id @db.SmallInt
+  pangalan String? @db.VarChar(60)
+  ranggo   String? @db.VarChar(35)
+
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model suppliers {
+  suppid   Int     @id @default(autoincrement()) @db.SmallInt
+  supplier String? @unique @db.VarChar(60)
+  phone    String? @db.VarChar(30)
+  contact  String? @db.VarChar(60)
+  taxnum   String? @db.VarChar(15)
+  phaseoff Boolean @default(false)
+  address  String? @db.VarChar
+  remarks  String? @db.VarChar
+
+  @@index([taxnum], map: "fki_suppliers_input_by_fkey")
+  @@schema("ppe")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model catdetails {
+  catdtld     String        @id @db.VarChar(18)
+  cat_id      String        @db.VarChar(11)
+  sub_cats    String?       @db.VarChar(3)
+  dtlsubc     String?       @db.VarChar(3)
+  itemname    String?       @db.VarChar(100)
+  describes   String?       @db.VarChar
+  pricetag    Float?
+  userid      String?       @db.VarChar(10)
+  entered     DateTime?     @default(now()) @db.Timestamp(6)
+  modifyby    String?       @db.VarChar(10)
+  altered     DateTime?     @db.Timestamp(6)
+  disposition disposition[]
+  mrdetalyes  mrdetalyes[]
+  realestate  realestate[]
+  catsiblings catsiblings?  @relation(fields: [cat_id, sub_cats], references: [cat_id, subcat], map: "catdetails_catid_fkey")
+  userlogs    userlogs?     @relation(fields: [userid], references: [userid], onDelete: Restrict)
+  purchase    purchase[]
+
+  @@schema("prc")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model categories {
+  cat_id      String        @id @db.VarChar(11)
+  categoria   String?       @db.VarChar
+  typed       Int           @default(0) @db.SmallInt
+  mrproperty  mrproperty[]
+  catsiblings catsiblings[]
+
+  @@schema("prc")
+}
+
+model catsiblings {
+  cat_id      String       @db.VarChar(11)
+  subcat      String       @db.VarChar(3)
+  subcatdate  DateTime     @default(now()) @db.Timestamp(6)
+  subcatename String       @db.VarChar(100)
+  userid      String?      @db.VarChar(10)
+  catdetails  catdetails[]
+  categories  categories   @relation(fields: [cat_id], references: [cat_id])
+
+  @@id([cat_id, subcat])
+  @@schema("prc")
+}
+
+model offices {
+  offcid                              String         @id @db.VarChar(7)
+  acronym                             String?        @db.VarChar(7)
+  opesina                             String?        @db.VarChar(60)
+  located                             String?        @unique(map: "idx_office_location") @db.Char(3)
+  grupo                               Int?           @db.SmallInt
+  referral                            String[]       @db.VarChar(7)
+  headed                              String?        @db.VarChar(7)
+  dispossessed                        dispossessed[]
+  employees_employees_offcidTooffices employees[]    @relation("employees_offcidTooffices")
+  mrproperty                          mrproperty[]
+  employees_offices_headedToemployees employees?     @relation("offices_headedToemployees", fields: [headed], references: [empkey], onDelete: Restrict)
+  purquest                            purquest[]
+  userlogs                            userlogs[]
+
+  @@schema("prc")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model purchase {
+  years      Int         @db.SmallInt
+  pr_num     String      @db.VarChar(12)
+  stockno    Int         @db.SmallInt
+  quantity   Int?        @db.SmallInt
+  units      String?     @db.VarChar(5)
+  item_id    String?     @db.VarChar(18)
+  described  String?     @db.VarChar
+  unitcosts  Float       @default(0)
+  totalcost  Float       @default(0)
+  catdetails catdetails? @relation(fields: [item_id], references: [catdtld], onDelete: Restrict, map: "purchase_itemid_fkey")
+  purquest   purquest    @relation(fields: [years, pr_num], references: [years, pr_num], onDelete: NoAction, onUpdate: NoAction, map: "purchase_years_fkey")
+
+  @@id([years, pr_num, stockno])
+  @@schema("prc")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model purquest {
+  years      Int        @db.SmallInt
+  pr_num     String     @db.VarChar(12)
+  offcid     String?    @db.VarChar(7)
+  division   String?    @db.VarChar(25)
+  sai_num    String?    @db.VarChar(12)
+  alobs      String?    @db.VarChar(14)
+  pr_date    DateTime?  @db.Date
+  sai_date   DateTime?  @db.Date
+  alobsdate  DateTime?  @db.Date
+  chargeto   String?    @db.VarChar
+  purposes   String?    @db.VarChar
+  requestby  String?    @db.VarChar(25)
+  req_desig  String?    @db.VarChar(25)
+  cash_avail String?    @db.VarChar(25)
+  cash_desig String?    @db.VarChar(25)
+  approved   String?    @db.VarChar(25)
+  app_desig  String?    @db.VarChar(25)
+  enterdate  DateTime?  @default(now()) @db.Timestamp(6)
+  encodby    String?    @db.VarChar(10)
+  backnum    String?    @db.VarChar(10)
+  philgeps   String?    @db.VarChar(10)
+  purchase   purchase[]
+  userlogs   userlogs?  @relation(fields: [encodby], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  offices    offices?   @relation(fields: [offcid], references: [offcid], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([years, pr_num])
+  @@schema("prc")
+}
+
+model signatories {
+  keyid      Int     @id @db.SmallInt
+  accountant String? @db.VarChar(60)
+  cparanggo  String? @db.VarChar(32)
+  treasurer  String? @db.VarChar(60)
+  ctoranggo  String? @db.VarChar(32)
+  citymayor  String? @db.VarChar(60)
+  designate  String? @db.VarChar(32)
+
+  @@schema("prc")
+}
+
+model tracinglog {
+  happened   DateTime @id @db.Timestamp(6)
+  activities String?  @db.VarChar(15)
+  opesina    String?  @db.VarChar(12)
+  userid     String?  @db.VarChar(10)
+  pr_num     String?  @db.VarChar(12)
+
+  @@schema("prc")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model userlogs {
+  userid       String         @id @db.VarChar(10)
+  passkey      String?        @db.VarChar(32)
+  pangalan     String?        @db.VarChar(60)
+  checkinn     DateTime?      @db.Timestamp(6)
+  checkout     DateTime?      @db.Timestamp(6)
+  permiso      String         @db.VarChar(10)
+  officeid     String?        @db.VarChar(7)
+  exempt       Int            @default(0) @db.SmallInt
+  dispossessed dispossessed[]
+  mrproperty   mrproperty[]
+  catdetails   catdetails[]
+  purquest     purquest[]
+  offices      offices?       @relation(fields: [officeid], references: [offcid], onDelete: Restrict)
+
+  @@schema("prc")
+}

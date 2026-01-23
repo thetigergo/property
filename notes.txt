@@ -1,0 +1,33 @@
+npx create-next-app@latest propinv --yes
+cd propinv
+npm install primereact primeicons primeflex
+npm install @prisma/extension-accelerate @prisma/client@6.19.0 dotenv --save-dev
+npx prisma init --datasource-provider postgresql --output ../generated/prisma
+ren prisma.config.ts prisma.config.ts.backup
+npx prisma generate --no-engine
+/** .env **
+ ** DATABASE_URL="postgresql://postgres:millennium%402000@172.16.7.252:5432/property"
+**/
+/** prisma/schema.prisma **
+ **datasource db {
+ **  provider = "postgresql"
+ **  url      = env("DATABASE_URL")
+ **  schemas  = ["ppe", "prc"]
+ **}
+**/
+npx prisma db pull
+npx prisma generate
+/** create queryall.ts and execute npx tsx queryall.ts */
+
+npm install react-hook-form
+npm install framer-motion
+npm install date-fns
+/**
+ * I uninstall these
+ * npm install lodash
+ * npm install --save-dev @types/lodash
+*/
+
+
+npm install prisma@6.19.0 --save-dev
+npm install @prisma/client@6.19.0

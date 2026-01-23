@@ -1,0 +1,51 @@
+#top {
+  position: relative;
+  /* background-color: seashell; */
+  /* color: white; */
+  /* padding: 5px;
+  margin: 0px 0px 10px 0px; */
+  min-width: 1024px;
+  /* height: 89px; */
+}
+
+#left {
+  float: left;
+  padding: 5px;
+  /* width: 175px; */
+}
+
+.left_content {
+  /*background-color: #dddddd;*/
+  padding: 5px;
+  /* margin-left: 170px; */
+}
+
+.pi-bounce {
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.pi-pulse {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
