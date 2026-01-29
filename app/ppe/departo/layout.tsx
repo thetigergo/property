@@ -4,7 +4,7 @@ import SideMenu from "@/components/SideMenuBar";
 import HeadBar from "@/components/TopHeader";
 import { useAuth } from "@/context/AuthContext";
 
-import ".././layout.css";
+import "@/styles/layout.css";
 
 export default function DepartoLayout({
   children,

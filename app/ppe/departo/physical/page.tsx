@@ -9,7 +9,7 @@ import { Button } from "primereact/button";
 export default function ParIcsDeptRpt() {
   const { nigamit } = useAuth();
 
-  const [frDate, setFrDate] = useState<Date>(new Date());
+  const [frDate, setFrDate] = useState<Date>(new Date(1990, 0, 1));
   const [toDate, setToDate] = useState<Date>(new Date());
   const [maxDate, setMaxDate] = useState<Date>();
 
@@ -39,15 +39,16 @@ export default function ParIcsDeptRpt() {
                   if (val) {
                     const pickedDate =
                       typeof val === "string"
-                        ? parse(val, "MM/dd/yy", new Date())
+                        ? parse(val, "MM/dd/yy", new Date(1990, 0, 1))
                         : val instanceof Date
-                        ? val
-                        : null;
+                          ? val
+                          : null;
                     if (pickedDate) setFrDate(pickedDate);
                   }
                 }}
                 minDate={new Date(1900, 0, 1)}
                 maxDate={maxDate}
+                showButtonBar
               />
             </td>
             <td className="surface-border p-2">
@@ -60,7 +61,7 @@ export default function ParIcsDeptRpt() {
                       nigamit?.officeId
                     }`,
                     "_blank",
-                    "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+                    "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
                   );
                 }}
                 style={{ width: "95px" }}
@@ -88,13 +89,14 @@ export default function ParIcsDeptRpt() {
                       typeof val === "string"
                         ? parse(val, "MM/dd/yy", new Date())
                         : val instanceof Date
-                        ? val
-                        : null;
+                          ? val
+                          : null;
                     if (pickedDate) setToDate(pickedDate);
                   }
                 }}
                 minDate={new Date(1900, 0, 1)}
                 maxDate={maxDate}
+                showButtonBar
               />
             </td>
             <td className="surface-border p-2">
@@ -107,7 +109,7 @@ export default function ParIcsDeptRpt() {
                       nigamit?.officeId
                     }`,
                     "_blank",
-                    "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+                    "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
                   );
                 }}
                 style={{ width: "95px" }}
