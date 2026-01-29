@@ -76,11 +76,11 @@ export default function DepartoPage() {
       setIsLoading(true);
       try {
         const result = await fetch(
-          `/property/api/departo/undone/${nigamit?.officeId}`,
+          "/property/api/departo/undone/" + nigamit?.officeId,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
 
         if (!result.ok) {

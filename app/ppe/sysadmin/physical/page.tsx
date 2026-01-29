@@ -25,7 +25,7 @@ interface Office {
 }
 
 export default function ParIcsAllRpt() {
-  const [frDate, setFrDate] = useState<Date>(new Date());
+  const [frDate, setFrDate] = useState<Date>(new Date(1990, 0, 1));
   const [toDate, setToDate] = useState<Date>(new Date());
   const [maxDate, setMaxDate] = useState<Date>();
 
@@ -77,22 +77,23 @@ export default function ParIcsAllRpt() {
                     id="from"
                     value={frDate}
                     dateFormat="mm/dd/yy"
-                    style={{ width: "10rem" }}
-                    showIcon
+                    style={{ width: "7rem" }}
+                    // showIcon
                     onSelect={(e) => {
                       const val = e.value;
                       if (val) {
                         const pickedDate =
                           typeof val === "string"
-                            ? parse(val, "MM/dd/yy", new Date())
+                            ? parse(val, "MM/dd/yy", new Date(1990, 0, 1))
                             : val instanceof Date
-                            ? val
-                            : null;
+                              ? val
+                              : null;
                         if (pickedDate) setFrDate(pickedDate);
                       }
                     }}
                     minDate={new Date(1900, 0, 1)}
                     maxDate={maxDate}
+                    showButtonBar
                   />
                 </td>
                 <td className="surface-border p-2">
@@ -105,7 +106,7 @@ export default function ParIcsAllRpt() {
                           pickedCategory?.catgid
                         }`,
                         "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
                       );
                     }}
                     style={{ width: "95px" }}
@@ -124,8 +125,8 @@ export default function ParIcsAllRpt() {
                     id="todt"
                     value={toDate}
                     dateFormat="mm/dd/yy"
-                    style={{ width: "10rem" }}
-                    showIcon
+                    style={{ width: "7rem" }}
+                    // showIcon
                     onSelect={(e) => {
                       const val = e.value;
                       if (val) {
@@ -133,13 +134,14 @@ export default function ParIcsAllRpt() {
                           typeof val === "string"
                             ? parse(val, "MM/dd/yy", new Date())
                             : val instanceof Date
-                            ? val
-                            : null;
+                              ? val
+                              : null;
                         if (pickedDate) setToDate(pickedDate);
                       }
                     }}
                     minDate={new Date(1900, 0, 1)}
                     maxDate={maxDate}
+                    showButtonBar
                   />
                 </td>
                 <td className="surface-border p-2">
@@ -152,7 +154,7 @@ export default function ParIcsAllRpt() {
                           pickedCategory?.catgid
                         }`,
                         "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
                       );
                     }}
                     style={{ width: "95px" }}
@@ -166,12 +168,12 @@ export default function ParIcsAllRpt() {
                 <td className="surface-border p-2">
                   <label className="font-bold block">:</label>
                 </td>
-                <td className="surface-border p-2">
+                <td className="surface-border p-2" colSpan={2}>
                   <Dropdown
                     id="catego"
                     inputId="catego"
                     value={pickedCategory}
-                    className="w-full"
+                    // className="w-full"
                     options={categories}
                     optionLabel="catego"
                     optionValue="catgid"
@@ -179,11 +181,13 @@ export default function ParIcsAllRpt() {
                       setPickedCategory(e.value)
                     }
                     checkmark={true}
-                    highlightOnSelect={false}
+                    highlightOnSelect={true}
                     tooltip={pickedCategory?.catego ?? "Select a category."}
+                    scrollHeight="400px"
+                    style={{ width: "200px" }}
                   />
                 </td>
-                <td className="surface-border p-2"></td>
+                {/* <td className="surface-border p-2"></td> */}
               </tr>
             </tbody>
           </table>
@@ -203,22 +207,23 @@ export default function ParIcsAllRpt() {
                     id="from"
                     value={frDate}
                     dateFormat="mm/dd/yy"
-                    style={{ width: "10rem" }}
-                    showIcon
+                    style={{ width: "7rem" }}
+                    // showIcon
                     onSelect={(e) => {
                       const val = e.value;
                       if (val) {
                         const pickedDate =
                           typeof val === "string"
-                            ? parse(val, "MM/dd/yy", new Date())
+                            ? parse(val, "MM/dd/yy", new Date(1990, 0, 1))
                             : val instanceof Date
-                            ? val
-                            : null;
+                              ? val
+                              : null;
                         if (pickedDate) setFrDate(pickedDate);
                       }
                     }}
                     minDate={new Date(1900, 0, 1)}
                     maxDate={maxDate}
+                    showButtonBar
                   />
                 </td>
                 <td className="surface-border p-2">
@@ -231,7 +236,7 @@ export default function ParIcsAllRpt() {
                           pickedOffice?.offcid
                         }`,
                         "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
                       );
                     }}
                     style={{ width: "95px" }}
@@ -250,8 +255,8 @@ export default function ParIcsAllRpt() {
                     id="todt"
                     value={toDate}
                     dateFormat="mm/dd/yy"
-                    style={{ width: "10rem" }}
-                    showIcon
+                    style={{ width: "7rem" }}
+                    // showIcon
                     onSelect={(e) => {
                       const val = e.value;
                       if (val) {
@@ -259,8 +264,8 @@ export default function ParIcsAllRpt() {
                           typeof val === "string"
                             ? parse(val, "MM/dd/yy", new Date())
                             : val instanceof Date
-                            ? val
-                            : null;
+                              ? val
+                              : null;
                         if (pickedDate) setToDate(pickedDate);
                       }
                     }}
@@ -278,7 +283,7 @@ export default function ParIcsAllRpt() {
                           pickedOffice?.offcid
                         }`,
                         "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
                       );
                     }}
                     style={{ width: "95px" }}
@@ -292,12 +297,12 @@ export default function ParIcsAllRpt() {
                 <td className="surface-border p-2">
                   <label className="font-bold block">:</label>
                 </td>
-                <td className="surface-border p-2">
+                <td className="surface-border p-2" colSpan={2}>
                   <Dropdown
                     id="offcid"
                     inputId="offcid"
                     value={pickedOffice}
-                    className="w-full"
+                    // className="w-full"
                     options={offices}
                     optionLabel="opesina"
                     optionValue="offcid"
@@ -305,11 +310,13 @@ export default function ParIcsAllRpt() {
                       setPickedOffice(e.value)
                     }
                     checkmark={true}
-                    highlightOnSelect={false}
+                    highlightOnSelect={true}
                     tooltip={pickedOffice?.opesina ?? "Select a Office."}
+                    scrollHeight="400px"
+                    style={{ width: "200px" }}
                   />
                 </td>
-                <td className="surface-border p-2"></td>
+                {/* <td className="surface-border p-2"></td> */}
               </tr>
             </tbody>
           </table>

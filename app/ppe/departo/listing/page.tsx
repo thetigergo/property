@@ -80,11 +80,11 @@ export default function ParIcsListing() {
       setIsLoading(true);
       try {
         const result = await fetch(
-          `/property/api/departo/listing/${nigamit?.officeId}`,
+          "/property/api/departo/listing/" + nigamit?.officeId,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
 
         if (!result.ok) {
@@ -127,7 +127,7 @@ export default function ParIcsListing() {
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
 
       if (!result.ok) {
@@ -201,7 +201,7 @@ export default function ParIcsListing() {
         window.open(
           `/propinv/custodian.html?icsareno=${selectedRow?.paricsno}&rptname=custodian`,
           "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
         );
       },
     },
@@ -212,7 +212,7 @@ export default function ParIcsListing() {
         window.open(
           `/propinv/acknowledge.html?icsareno=${selectedRow?.paricsno}&rptname=acknowledge`,
           "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
         );
       },
     },
@@ -224,7 +224,8 @@ export default function ParIcsListing() {
     {
       label: "Retrieve",
       icon: "pi pi-angle-double-up",
-      command: () => router.push(`/departo/modify/${selectedRow?.paricsno}`),
+      command: () =>
+        router.push("/ppe/departo/modify/" + selectedRow?.paricsno),
       disabled: selectedRow?.status,
     },
     {
@@ -250,7 +251,7 @@ export default function ParIcsListing() {
       else {
         // Refresh local state
         setParicsData((prev) =>
-          prev.filter((item) => item.paricsno !== product)
+          prev.filter((item) => item.paricsno !== product),
         );
 
         toast.current?.show({

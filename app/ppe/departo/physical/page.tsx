@@ -32,8 +32,8 @@ export default function ParIcsDeptRpt() {
                 id="from"
                 value={frDate}
                 dateFormat="mm/dd/yy"
-                style={{ width: "10rem" }}
-                showIcon
+                style={{ width: "7rem" }}
+                // showIcon
                 onSelect={(e) => {
                   const val = e.value;
                   if (val) {
@@ -80,8 +80,8 @@ export default function ParIcsDeptRpt() {
                 id="todt"
                 value={toDate}
                 dateFormat="mm/dd/yy"
-                style={{ width: "10rem" }}
-                showIcon
+                style={{ width: "7rem" }}
+                // showIcon
                 onSelect={(e) => {
                   const val = e.value;
                   if (val) {
