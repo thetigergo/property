@@ -77,9 +77,9 @@ const Login = () => {
           const hasC = rights.includes("C");
           const has0 = rights.includes("0");
           if (hasA || hasB) {
-            router.push("/sysadmin"); // or any route you want
+            router.push("/ppe/sysadmin"); // or any route you want
           } else if (hasC || has0) {
-            router.push("/departo"); // or any route you want
+            router.push("/ppe/departo"); // or any route you want
           } else {
             console.log("Rights include ?");
             setErrorMessage("Rights include ?");
@@ -313,7 +313,7 @@ const Login = () => {
                             window.open(
                               evt.value.url,
                               "_blank",
-                              "noopener,noreferrer"
+                              "noopener,noreferrer",
                             )
                           }
                         />
