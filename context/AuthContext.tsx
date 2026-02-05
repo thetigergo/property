@@ -15,7 +15,7 @@ interface UserData {
 // 2. Define the shape of the data you want to share
 interface AuthContextType {
   nigamit: UserData | null; // Stores all user data or null
-  isLoggedIn: boolean;
+  // isLoggedIn: boolean;
   login: (userData: UserData) => void; // Now accepts the full UserData object
   logout: () => void;
   loading: boolean; // ✅ Add this
@@ -30,7 +30,7 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [nigamit, setUser] = useState<UserData | null>(null);
-  const isLoggedIn = nigamit !== null;
+  // const isLoggedIn = nigamit !== null;
   // const router = useRouter(); // Initialize router for logout
   const [loading, setLoading] = useState(false);
 
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
   return (
     <AuthContext.Provider
-      value={{ nigamit, isLoggedIn, login, logout, loading }}
+      value={{ nigamit, /*isLoggedIn,*/ login, logout, loading }}
     >
       {children}
     </AuthContext.Provider>

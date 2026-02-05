@@ -1,4 +1,5 @@
 "use client";
+import { redirect } from "next/navigation";
 
 import SideMenu from "@/components/SideMenuBar";
 import HeadBar from "@/components/TopHeader";
@@ -11,9 +12,9 @@ export default function DepartoLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isLoggedIn } = useAuth();
+  const { nigamit } = useAuth();
 
-  if (!isLoggedIn) return null;
+  if (!nigamit) redirect("/");
 
   return (
     <div className="departo-layout">

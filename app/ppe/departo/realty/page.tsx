@@ -112,7 +112,7 @@ export default function EmployeeListing() {
           opesina: item.opesina,
         }));
         setOffices(offclist);
-        initFilters();
+        // initFilters();
       } catch (error) {
         console.error("Error loading data:", error);
         const fallbackMessage = "Failed to load Unfinished Employees.";
