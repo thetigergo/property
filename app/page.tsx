@@ -309,13 +309,14 @@ const Login = () => {
                           options={videos}
                           optionLabel="title"
                           className="w-full md:w-14rem"
-                          onChange={(evt) =>
-                            window.open(
-                              evt.value.url,
-                              "_blank",
-                              "noopener,noreferrer",
-                            )
-                          }
+                          onChange={(evt) => {
+                            if (typeof window !== "undefined")
+                              window.open(
+                                evt.value.url,
+                                "_blank",
+                                "noopener,noreferrer",
+                              );
+                          }}
                         />
                       </TabPanel>
                     </TabView>

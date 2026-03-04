@@ -45,17 +45,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // 1. **TRIGGER SERVER ACTION/API ROUTE TO CLEAR COOKIE**
     // You must hit an endpoint that runs `clearAuthCookie()`
-    const res = await fetch("/property/api/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userid: nigamit?.userId }),
-    });
+    // const res = await fetch("/property/api/logout", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ userid: nigamit?.userId }),
+    // });
 
     setLoading(false);
-    if (res.ok) {
-      setUser(null);
-      router.push("/");
-    } else throw new Error("Logout failed");
+    // if (res.ok) {
+    setUser(null);
+    // router.push("/");
+    // } else throw new Error("Logout failed");
 
     // 2. Redirect
     // router.push("/");

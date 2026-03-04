@@ -14,12 +14,12 @@
     "framer-motion": "^12.23.24",
     "js-cookie": "^3.0.5",
     "latest": "^0.2.0",
-    "next": "^16.0.8",
+    "next": "^16.1.6",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.7",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-hook-form": "^7.66.0"
   },
   "devDependencies": {

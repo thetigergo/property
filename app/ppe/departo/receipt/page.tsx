@@ -341,11 +341,13 @@ export default function EntryPage() {
       label: "Inventory Custodian Slip",
       icon: "pi pi-file-pdf",
       command: () => {
-        window.open(
-          `/propinv/custodian.html?icsareno=${icsareno}&rptname=custodian`,
-          "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-        );
+        if (typeof window !== "undefined") {
+          window.open(
+            `/propinv/custodian.html?icsareno=${icsareno}&rptname=custodian`,
+            "_blank",
+            "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+          );
+        }
       },
       // disabled: true,
     },
