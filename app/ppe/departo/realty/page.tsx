@@ -250,7 +250,7 @@ export default function EmployeeListing() {
           </div>
           <div className="field">
             <label htmlFor="name" className="font-bold">
-              Owner's Name
+              Owner&apos;s Name
             </label>
             <InputText
               id="name"
@@ -286,20 +286,20 @@ export default function EmployeeListing() {
               Location/Barangay
             </label>
             <Dropdown
-              value={selectedCity}
-              onChange={(e: DropdownChangeEvent) => setSelectedCity(e.value)}
-              options={groupedCities}
+              // value={selectedCity}
+              // onChange={(e: DropdownChangeEvent) => setSelectedCity(e.value)}
+              // options={groupedCities}
               optionLabel="label"
               optionGroupLabel="label"
               optionGroupChildren="items"
-              optionGroupTemplate={groupedItemTemplate}
+              // optionGroupTemplate={groupedItemTemplate}
               className="w-full md:w-14rem"
               placeholder="Select a City"
             />
 
-            {submitted && !selectedCity && (
+            {/* {submitted && !selectedCity && (
               <small className="p-error">Location is required.</small>
-            )}
+            )} */}
           </div>
 
           <div className="field">
