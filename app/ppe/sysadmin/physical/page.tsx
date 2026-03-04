@@ -101,13 +101,14 @@ export default function ParIcsAllRpt() {
                     label="Print I.C.S."
                     rounded
                     onClick={() => {
-                      window.open(
-                        `/propinv/physicalconsul.html?rptname=physicalconsul&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
-                          pickedCategory?.catgid
-                        }`,
-                        "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-                      );
+                      if (typeof window !== "undefined")
+                        window.open(
+                          `/propinv/physicalconsul.html?rptname=physicalconsul&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
+                            pickedCategory?.catgid
+                          }`,
+                          "_blank",
+                          "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+                        );
                     }}
                     style={{ width: "95px" }}
                   />
@@ -149,13 +150,14 @@ export default function ParIcsAllRpt() {
                     label="Print P.A.R."
                     rounded
                     onClick={() => {
-                      window.open(
-                        `/propinv/physicalconsol.html?rptname=physicalconsol&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
-                          pickedCategory?.catgid
-                        }`,
-                        "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-                      );
+                      if (typeof window !== "undefined")
+                        window.open(
+                          `/propinv/physicalconsol.html?rptname=physicalconsol&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
+                            pickedCategory?.catgid
+                          }`,
+                          "_blank",
+                          "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+                        );
                     }}
                     style={{ width: "95px" }}
                   />
@@ -231,13 +233,14 @@ export default function ParIcsAllRpt() {
                     label="Print I.C.S."
                     rounded
                     onClick={() => {
-                      window.open(
-                        `/propinv/physicalofficeics.html?rptname=physicalofficeics&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
-                          pickedOffice?.offcid
-                        }`,
-                        "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-                      );
+                      if (typeof window !== "undefined")
+                        window.open(
+                          `/propinv/physicalofficeics.html?rptname=physicalofficeics&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
+                            pickedOffice?.offcid
+                          }`,
+                          "_blank",
+                          "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+                        );
                     }}
                     style={{ width: "95px" }}
                   />
@@ -278,13 +281,14 @@ export default function ParIcsAllRpt() {
                     label="Print P.A.R."
                     rounded
                     onClick={() => {
-                      window.open(
-                        `/propinv/physicalofficeare.html?rptname=physicalofficeare&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
-                          pickedOffice?.offcid
-                        }`,
-                        "_blank",
-                        "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-                      );
+                      if (typeof window !== "undefined")
+                        window.open(
+                          `/propinv/physicalofficeare.html?rptname=physicalofficeare&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
+                            pickedOffice?.offcid
+                          }`,
+                          "_blank",
+                          "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+                        );
                     }}
                     style={{ width: "95px" }}
                   />

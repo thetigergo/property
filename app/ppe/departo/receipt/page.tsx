@@ -355,11 +355,12 @@ export default function EntryPage() {
       label: "Property Acknowledgement Receipt",
       icon: "pi pi-file-pdf",
       command: () => {
-        window.open(
-          `/propinv/acknowledge.html?icsareno=${icsareno}&rptname=acknowledge`,
-          "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-        );
+        if (typeof window !== "undefined")
+          window.open(
+            `/propinv/acknowledge.html?icsareno=${icsareno}&rptname=acknowledge`,
+            "_blank",
+            "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+          );
       },
     },
   ];

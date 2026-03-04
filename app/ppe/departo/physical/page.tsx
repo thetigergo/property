@@ -56,13 +56,14 @@ export default function ParIcsDeptRpt() {
                 label="Print I.C.S."
                 rounded
                 onClick={() => {
-                  window.open(
-                    `/propinv/physicalofficeics.html?rptname=physicalofficeics&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
-                      nigamit?.officeId
-                    }`,
-                    "_blank",
-                    "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-                  );
+                  if (typeof window !== "undefined")
+                    window.open(
+                      `/propinv/physicalofficeics.html?rptname=physicalofficeics&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
+                        nigamit?.officeId
+                      }`,
+                      "_blank",
+                      "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+                    );
                 }}
                 style={{ width: "95px" }}
               />
@@ -104,13 +105,14 @@ export default function ParIcsDeptRpt() {
                 label="Print P.A.R."
                 rounded
                 onClick={() => {
-                  window.open(
-                    `/propinv/physicalofficeare.html?rptname=physicalofficeare&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
-                      nigamit?.officeId
-                    }`,
-                    "_blank",
-                    "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-                  );
+                  if (typeof window !== "undefined")
+                    window.open(
+                      `/propinv/physicalofficeare.html?rptname=physicalofficeare&dateFr=${frDate.getTime()}&dateTo=${toDate.getTime()}&acctid=${
+                        nigamit?.officeId
+                      }`,
+                      "_blank",
+                      "width=760,height=800,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+                    );
                 }}
                 style={{ width: "95px" }}
               />

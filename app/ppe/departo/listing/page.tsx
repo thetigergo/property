@@ -198,22 +198,24 @@ export default function ParIcsListing() {
       label: "Print I.C.S.",
       icon: "pi pi-file-pdf",
       command: () => {
-        window.open(
-          `/propinv/custodian.html?icsareno=${selectedRow?.paricsno}&rptname=custodian`,
-          "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-        );
+        if (typeof window !== "undefined")
+          window.open(
+            `/propinv/custodian.html?icsareno=${selectedRow?.paricsno}&rptname=custodian`,
+            "_blank",
+            "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+          );
       },
     },
     {
       label: "Print P.A.R.",
       icon: "pi pi-file-pdf",
       command: () => {
-        window.open(
-          `/propinv/acknowledge.html?icsareno=${selectedRow?.paricsno}&rptname=acknowledge`,
-          "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
-        );
+        if (typeof window !== "undefined")
+          window.open(
+            `/propinv/acknowledge.html?icsareno=${selectedRow?.paricsno}&rptname=acknowledge`,
+            "_blank",
+            "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+          );
       },
     },
     {

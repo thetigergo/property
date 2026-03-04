@@ -172,7 +172,7 @@ export default function ModifyPage({
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
         const datos = await result.json();
         const emplist: Employee[] = datos.map((item: Employee) => ({
@@ -194,7 +194,7 @@ export default function ModifyPage({
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
         const subcat: Optionz[] = await result.json();
         if (!data || subcat.length === 0) {
@@ -221,7 +221,7 @@ export default function ModifyPage({
   }, [expcode, ukid, opesina, empKey]);
   const dateShow = (rowData: Listahan) => {
     return formatDate(
-      new Date(rowData.acquired ? rowData.acquired : Date.now())
+      new Date(rowData.acquired ? rowData.acquired : Date.now()),
     );
   };
   const formatDate = (value: Date) => {
@@ -255,22 +255,24 @@ export default function ModifyPage({
       label: "Print I.C.S.",
       icon: "pi pi-file-pdf",
       command: () => {
-        window.open(
-          `/propinv/custodian.html?icsareno=${icsareno}&rptname=custodian`,
-          "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
-        );
+        if (typeof window !== "undefined")
+          window.open(
+            `/propinv/custodian.html?icsareno=${icsareno}&rptname=custodian`,
+            "_blank",
+            "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+          );
       },
     },
     {
       label: "Print P.A.R.",
       icon: "pi pi-file-pdf",
       command: () => {
-        window.open(
-          `/propinv/acknowledge.html?icsareno=${icsareno}&rptname=acknowledge`,
-          "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
-        );
+        if (typeof window !== "undefined")
+          window.open(
+            `/propinv/acknowledge.html?icsareno=${icsareno}&rptname=acknowledge`,
+            "_blank",
+            "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
+          );
       },
     },
   ];
@@ -346,7 +348,7 @@ export default function ModifyPage({
   }
   const onInputTextAreaChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
-    name: keyof Listahan
+    name: keyof Listahan,
   ) => {
     const val = e.target && e.target.value;
     const _product: Partial<Listahan> = { ...product };
@@ -357,7 +359,7 @@ export default function ModifyPage({
   };
   const onInputNumberChange = (
     e: InputNumberValueChangeEvent,
-    name: keyof Listahan
+    name: keyof Listahan,
   ) => {
     const val = e.value ?? 0;
     const _product: Partial<Listahan> = { ...product };
@@ -383,7 +385,7 @@ export default function ModifyPage({
         `/property/api/departo/receipt/datalist?parics=${icsareno}&thing=${butang[index]?.property}`,
         {
           method: "DELETE",
-        }
+        },
       );
       // const data = await result.json();
       if (!result.ok) {
@@ -400,7 +402,7 @@ export default function ModifyPage({
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
       if (!result.ok) setErrorMessage("Failed to fetch data list.");
       const data = await result.json();
@@ -448,7 +450,7 @@ export default function ModifyPage({
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },
-                    }
+                    },
                   );
                   data = await result.json();
                   const orderno = data.icsareno;
@@ -459,7 +461,7 @@ export default function ModifyPage({
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },
-                    }
+                    },
                   );
                   data = await result.json();
                   const threshold = data.icsareno;
@@ -515,7 +517,7 @@ export default function ModifyPage({
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
-                      }
+                      },
                     );
                     if (!result.ok)
                       setErrorMessage("Failed to fetch data list.");
@@ -534,7 +536,7 @@ export default function ModifyPage({
                 } catch (error) {
                   console.error(
                     "Transaction failed and was rolled back:",
-                    error
+                    error,
                   );
                 } finally {
                   setLoading(false);
@@ -748,7 +750,7 @@ export default function ModifyPage({
                         optionLabel="label"
                         onChange={(e: DropdownChangeEvent) => {
                           const initPrefix = prefixes.find(
-                            (p) => p.value === e.value
+                            (p) => p.value === e.value,
                           );
                           if (initPrefix) setPrefixed(initPrefix);
                         }}
@@ -770,10 +772,10 @@ export default function ModifyPage({
                         options={unitOptions}
                         onChange={(e: DropdownChangeEvent) => {
                           const groups = unitOptions.flatMap(
-                            (group) => group.items
+                            (group) => group.items,
                           );
                           const initOption = groups.find(
-                            (p) => p.value === e.value
+                            (p) => p.value === e.value,
                           );
                           if (initOption) setPickedUnit(initOption);
                         }}
@@ -935,7 +937,7 @@ export default function ModifyPage({
                 } catch (error) {
                   console.error(
                     "Transaction failed and was rolled back:",
-                    error
+                    error,
                   );
                 } finally {
                   setLoading(false);
@@ -1020,7 +1022,7 @@ export default function ModifyPage({
                         onChange={(e: DropdownChangeEvent) => {
                           console.log(e.value);
                           const initEmp = employees.find(
-                            (p) => p.empkey === e.value
+                            (p) => p.empkey === e.value,
                           );
                           if (initEmp) setPersona(initEmp);
                         }}
@@ -1127,7 +1129,7 @@ export default function ModifyPage({
             header="Item Description"
             headerStyle={{ width: "33%" }}
             body={(
-              rowData // Use body to customize the cell content
+              rowData, // Use body to customize the cell content
             ) => (
               <>
                 {rowData.detalye} <br /> {rowData.specifyd}
@@ -1387,7 +1389,7 @@ export default function ModifyPage({
               const dateValue = e.value instanceof Date ? e.value : null;
               onInputNumberChange(
                 { value: dateValue?.getTime() } as InputNumberValueChangeEvent,
-                "acquired"
+                "acquired",
               );
             }}
             dateFormat="mm/dd/yy"
