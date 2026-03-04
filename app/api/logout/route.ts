@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
     console.error("Error during server logout:", error);
     return NextResponse.json(
       { message: "Logout failed due to server error." },
-      { status: 500 }
+      { status: 500 },
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

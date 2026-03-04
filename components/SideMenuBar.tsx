@@ -44,7 +44,11 @@ export default function SideMenuBar() {
     {
       label: "REAL ESTATE",
       items: [
-        { label: "Entry Form", icon: "pi pi-file" },
+        {
+          label: "Entry Form",
+          icon: "pi pi-file",
+          command: () => router.push("/ppe/departo/realty"),
+        },
         { label: "Property List", icon: "pi pi-file" },
       ],
       visible: assr,

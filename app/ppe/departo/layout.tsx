@@ -12,9 +12,9 @@ export default function DepartoLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { nigamit } = useAuth();
+  const { nigamit, logout } = useAuth();
 
-  if (!nigamit) redirect("/");
+  if (!nigamit) logout(); // This will handle the case where the user is not logged in and ensure they are redirected to the login page.
 
   return (
     <div className="departo-layout">

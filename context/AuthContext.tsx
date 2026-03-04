@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-// import { useRouter } from "next/navigation"; // Added for logout redirect
+import { useRouter } from "next/navigation"; // Added for logout redirect
 
 // 1. Define the shape of the full user data object
 interface UserData {
@@ -31,7 +31,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [nigamit, setUser] = useState<UserData | null>(null);
   // const isLoggedIn = nigamit !== null;
-  // const router = useRouter(); // Initialize router for logout
+  const router = useRouter(); // Initialize router for logout
   const [loading, setLoading] = useState(false);
 
   // Function to handle login and set the full user object
@@ -42,7 +42,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     setLoading(true);
-    setUser(null);
 
     // 1. **TRIGGER SERVER ACTION/API ROUTE TO CLEAR COOKIE**
     // You must hit an endpoint that runs `clearAuthCookie()`
@@ -52,9 +51,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       body: JSON.stringify({ userid: nigamit?.userId }),
     });
 
-    if (!res.ok) console.error("Logout failed:", res.status);
-
     setLoading(false);
+    if (res.ok) {
+      setUser(null);
+      router.push("/");
+    } else throw new Error("Logout failed");
 
     // 2. Redirect
     // router.push("/");
@@ -73,8 +74,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 // 5. Custom hook for easy consumption
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (context === undefined)
     throw new Error("useAuth must be used within an AuthProvider");
-  }
   return context;
 };

@@ -16,7 +16,7 @@ export default function ThemeSwitcher() {
       currentTheme: string,
       newTheme: string,
       linkElementId: string,
-      callback: () => void
+      callback: () => void,
     ) => void;
   };
 
