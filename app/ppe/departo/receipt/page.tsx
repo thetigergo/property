@@ -158,7 +158,7 @@ export default function EntryPage() {
         });
         return acc;
       },
-      {}
+      {},
     );
     const groupedArray: CategoryGroup[] = Object.values(grouped);
     return groupedArray;
@@ -181,7 +181,7 @@ export default function EntryPage() {
         });
         return acc;
       },
-      {}
+      {},
     );
     const groupedArray: CategoryGroup[] = Object.values(grouped);
     return groupedArray;
@@ -215,7 +215,7 @@ export default function EntryPage() {
   };
   const dateShow = (rowData: Listahan) => {
     return formatDate(
-      new Date(rowData.acquired ? rowData.acquired : Date.now())
+      new Date(rowData.acquired ? rowData.acquired : Date.now()),
     );
   };
 
@@ -243,7 +243,7 @@ export default function EntryPage() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
         // if (!result.ok) throw new Error(`HTTP error! status: ${result.status}`);
 
@@ -275,7 +275,7 @@ export default function EntryPage() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
         const data = await result.json();
         const emplist: Employee[] = data.map((item: Employee) => ({
@@ -344,7 +344,7 @@ export default function EntryPage() {
         window.open(
           `/propinv/custodian.html?icsareno=${icsareno}&rptname=custodian`,
           "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
         );
       },
       // disabled: true,
@@ -356,7 +356,7 @@ export default function EntryPage() {
         window.open(
           `/propinv/acknowledge.html?icsareno=${icsareno}&rptname=acknowledge`,
           "_blank",
-          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no"
+          "width=760,height=600,menubar=0,toolbar=0,scrollbars=no,location=0,resizable=no",
         );
       },
     },
@@ -364,7 +364,7 @@ export default function EntryPage() {
 
   const onInputTextAreaChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
-    name: keyof Listahan
+    name: keyof Listahan,
   ) => {
     const val = e.target && e.target.value;
     const _product: Partial<Listahan> = { ...product };
@@ -375,7 +375,7 @@ export default function EntryPage() {
   };
   const onInputNumberChange = (
     e: InputNumberValueChangeEvent,
-    name: keyof Listahan
+    name: keyof Listahan,
   ) => {
     const val = e.value ?? 0;
     const _product: Partial<Listahan> = { ...product };
@@ -409,7 +409,7 @@ export default function EntryPage() {
         `/property/api/departo/receipt/datalist?parics=${icsareno}&thing=${butang[index]?.property}`,
         {
           method: "DELETE",
-        }
+        },
       );
       // const data = await result.json();
       if (!result.ok) {
@@ -421,7 +421,7 @@ export default function EntryPage() {
         });
         // throw new Error(data.message || "Failed to delete property");
       } else
-      /*setDataList((prevDataList) => {
+        /*setDataList((prevDataList) => {
           return prevDataList.filter(
             (item) => item.property !== product?.property
           ); // Filter out the deleted product
@@ -431,7 +431,7 @@ export default function EntryPage() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
       if (!result.ok) setErrorMessage("Failed to fetch data list.");
       const data = await result.json();
@@ -472,7 +472,7 @@ export default function EntryPage() {
                 const tuiga =
                   petsa.buhat?.getFullYear() ?? new Date().getFullYear();
                 const bulan = String(
-                  (petsa.buhat?.getMonth() ?? new Date().getMonth()) + 1
+                  (petsa.buhat?.getMonth() ?? new Date().getMonth()) + 1,
                 ).padStart(2, "0");
 
                 try {
@@ -485,7 +485,7 @@ export default function EntryPage() {
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
-                      }
+                      },
                     );
                     data = await result.json();
                     parics = parseInt(tuiga + bulan + data.icsareno, 10);
@@ -498,7 +498,7 @@ export default function EntryPage() {
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },
-                    }
+                    },
                   );
                   data = await result.json();
                   const orderno = data.icsareno;
@@ -509,7 +509,7 @@ export default function EntryPage() {
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },
-                    }
+                    },
                   );
                   data = await result.json();
                   const threshold = data.icsareno;
@@ -567,7 +567,7 @@ export default function EntryPage() {
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
-                      }
+                      },
                     );
                     if (!result.ok)
                       setErrorMessage("Failed to fetch data list.");
@@ -586,7 +586,7 @@ export default function EntryPage() {
                 } catch (error) {
                   console.error(
                     "Transaction failed and was rolled back:",
-                    error
+                    error,
                   );
                 } finally {
                   setLoading(false);
@@ -628,8 +628,8 @@ export default function EntryPage() {
                                       typeof val === "string"
                                         ? parse(val, "MM/dd/yy", new Date())
                                         : val instanceof Date
-                                        ? val
-                                        : null;
+                                          ? val
+                                          : null;
                                     if (selectedDate) updatePetsa(selectedDate);
                                   }
                                 }}
@@ -717,10 +717,10 @@ export default function EntryPage() {
                                     null;
 
                                   const groups = grpCategory.flatMap(
-                                    (group) => group.items
+                                    (group) => group.items,
                                   );
                                   const initOption = groups.find(
-                                    (p) => p.value === e.value
+                                    (p) => p.value === e.value,
                                   );
 
                                   if (choice) {
@@ -868,7 +868,7 @@ export default function EntryPage() {
                         optionLabel="label"
                         onChange={(e: DropdownChangeEvent) => {
                           const initPrefix = prefixes.find(
-                            (p) => p.value === e.value
+                            (p) => p.value === e.value,
                           );
                           if (initPrefix) setPrefix(initPrefix);
                         }}
@@ -890,10 +890,10 @@ export default function EntryPage() {
                         options={unitOptions}
                         onChange={(e: DropdownChangeEvent) => {
                           const groups = unitOptions.flatMap(
-                            (group) => group.items
+                            (group) => group.items,
                           );
                           const initOption = groups.find(
-                            (p) => p.value === e.value
+                            (p) => p.value === e.value,
                           );
                           if (initOption) setPickedUnit(initOption);
                         }}
@@ -1068,7 +1068,7 @@ export default function EntryPage() {
                 } catch (error) {
                   console.error(
                     "Transaction failed and was rolled back:",
-                    error
+                    error,
                   );
                 } finally {
                   setLoading(false);
@@ -1152,7 +1152,7 @@ export default function EntryPage() {
                         optionValue="empkey"
                         onChange={(e: DropdownChangeEvent) => {
                           const initEmp = employees.find(
-                            (p) => p.empkey === e.value
+                            (p) => p.empkey === e.value,
                           );
                           if (initEmp) setPersona(initEmp);
                         }}
@@ -1275,7 +1275,7 @@ export default function EntryPage() {
             header="Item Description"
             headerStyle={{ width: "33%" }}
             body={(
-              rowData // Use body to customize the cell content
+              rowData, // Use body to customize the cell content
             ) => (
               <>
                 {rowData.detalye} <br /> {rowData.specifyd}
@@ -1593,7 +1593,7 @@ export default function EntryPage() {
               const dateValue = e.value instanceof Date ? e.value : null;
               onInputNumberChange(
                 { value: dateValue?.getTime() } as InputNumberValueChangeEvent,
-                "acquired"
+                "acquired",
               );
             }}
             dateFormat="mm/dd/yy"

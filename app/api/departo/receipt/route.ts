@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (!anios)
     return NextResponse.json(
       { error: "Missing 'anios' parameter" },
-      { status: 400 }
+      { status: 400 },
     );
   try {
     if (anios && typed === "icsare") {
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       if (isNaN(timestamp)) {
         return NextResponse.json(
           { message: "Invalid petsa format" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       const dateObject = new Date(timestamp);
@@ -83,7 +83,7 @@ function generateItemizeRecords(
   kabook: number,
   nextno: number,
   IcsAreNo: number,
-  offcCode: string
+  offcCode: string,
 ): ItemizeData[] {
   const oneByone = kabtangan.substring(0, 11) + "-";
   const initialTimestamp = new Date().getTime();
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     console.error("Validation Error:", validation.error.issues);
     return NextResponse.json(
       { error: "Invalid payload data.", details: validation.error.issues },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -140,10 +140,12 @@ export async function POST(req: NextRequest) {
           where: { icsareno: tab1Data.icsareno },
         });
         if (!mainRecord) {
+          const petsa = new Date(tab1Data.preparar).getTime();
+          const maked = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
           mainRecord = await tx.mrproperty.create({
             data: {
               icsareno: tab1Data.icsareno,
-              preparar: new Date(tab1Data.preparar),
+              preparar: maked ? new Date(maked) : new Date(),
               opesina: tab1Data.opesina,
               expcode: tab1Data.expcode,
               user_id: tab1Data.userid,
@@ -153,6 +155,8 @@ export async function POST(req: NextRequest) {
 
         // ➡️ OPERATION 2: Update the related inventory count
         // This operation depends on the success of the first one.
+        const petsa = new Date(tab1Data.acquired).getTime();
+        const nakuha = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
         const detailRecord = await tx.mrdetalyes.create({
           data: {
             icsareno: tab1Data.icsareno,
@@ -162,9 +166,7 @@ export async function POST(req: NextRequest) {
             specifyd: tab1Data.specific,
             unitcost: tab1Data.costing ?? 0,
             itemno: 0,
-            acquired: tab1Data.acquired
-              ? new Date(tab1Data.acquired)
-              : new Date(),
+            acquired: nakuha ? new Date(nakuha) : new Date(),
             uselife: tab1Data.lifespan,
             property: tab1Data.butang,
             acronyear: tab1Data.acronym,
@@ -178,7 +180,7 @@ export async function POST(req: NextRequest) {
           tab1Data.kabook,
           tab1Data.lastseq - tab1Data.kabook + 1,
           tab1Data.icsareno,
-          tab1Data.acronym.substring(0, 3)
+          tab1Data.acronym.substring(0, 3),
         );
 
         // 2. Perform the bulk insert using the transaction client (tx)
@@ -216,7 +218,7 @@ export async function POST(req: NextRequest) {
         message: "Transaction completed successfully.",
         data: result,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     // This block catches the error thrown inside $transaction,
@@ -229,7 +231,7 @@ export async function POST(req: NextRequest) {
           (error as Error).message ||
           "Transaction failed due to an unknown error.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

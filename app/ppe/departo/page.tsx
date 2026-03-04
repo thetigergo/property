@@ -157,7 +157,8 @@ export default function DepartoPage() {
     {
       label: "Retrieve",
       icon: "pi pi-angle-double-up",
-      command: () => router.push(`/departo/modify/${selectedRow?.icsareno}`),
+      command: () =>
+        router.push(`/ppe/departo/modify/${selectedRow?.icsareno}`),
     },
     {
       label: "Delete",
@@ -309,7 +310,10 @@ export default function DepartoPage() {
               label="Yes"
               icon="pi pi-check"
               severity="danger"
-              onClick={() => product && handleDelete()}
+              onClick={() => {
+                if (product) handleDelete();
+                setEraseDialog(false);
+              }}
             />
           </React.Fragment>
         }

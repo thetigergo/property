@@ -25,7 +25,7 @@ export const schemaTab1 = baseFields.extend({
   specific: z.string(),
   costing: z.number().positive(), // Allowing decimals as discussed
   acquired: z.number().int().positive(),
-  lifespan: z.number().int().positive(),
+  lifespan: z.number().int().min(0),
   butang: z.string(),
   acronym: z.string(),
   lastseq: z.number().int().positive(),
