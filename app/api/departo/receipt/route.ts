@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
   try {
     if (anios && typed === "icsare") {
       const nahimo = parseInt(anios, 10);
+      const bulana = parseInt(petsaha ? petsaha : "1", 10);
       const result = await prisma.$queryRaw<{ newicsare: string }[]>(Prisma.sql`
                                 SELECT  
                                   CASE WHEN MAX(icsareno) IS NULL THEN
@@ -31,17 +32,19 @@ export async function GET(req: NextRequest) {
                                 FROM
                                   ppe.mrproperty
                                 WHERE
-                                  DATE_PART('YEAR', preparar) = ${nahimo};`);
+                                  (DATE_PART('YEAR', preparar) = ${nahimo}) AND
+                                  (DATE_PART('MONTH', preparar) = ${bulana});`);
       const item = result[0];
       return NextResponse.json({ icsareno: item.newicsare });
     } else if (expcode && anios) {
       const nahimo = parseInt(anios, 10);
       const result = await prisma.$queryRaw<{ seqno: number }[]>(Prisma.sql`
-                                SELECT COALESCE(MAX(mrdetalyes.lastseq), 0) as seqno
+                                SELECT 
+                                    COALESCE(MAX(mrdetalyes.lastseq), 0) as seqno
                                 FROM ppe.mrdetalyes INNER JOIN ppe.mrproperty
-                                     ON mrdetalyes.icsareno = mrproperty.icsareno
+                                    ON mrdetalyes.icsareno = mrproperty.icsareno
                                 WHERE (mrproperty.expcode = ${expcode}) AND
-                                      (DATE_PART('YEAR', mrdetalyes.acquired) =  ${nahimo});`);
+                                    (DATE_PART('YEAR', mrdetalyes.acquired) =  ${nahimo});`);
       const item = result[0];
       return NextResponse.json({ icsareno: item.seqno });
     } else if (anios && petsaha) {

@@ -484,7 +484,7 @@ export default function EntryPage() {
                   let data;
                   if (icsareno === 0) {
                     result = await fetch(
-                      `/property/api/departo/receipt?anios=${tuiga}&type=icsare`,
+                      `/property/api/departo/receipt?anios=${tuiga}&type=icsare&petsa=${bulan}`,
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },

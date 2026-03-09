@@ -8,7 +8,7 @@ export const baseFields = z.object({
   specifyd: z.string(),
   unitcost: z.number().positive(),
   acquired: z.number().int().positive(),
-  uselife: z.number().int().positive(),
+  uselife: z.number().int().min(0),
   property: z.string(),
 });
 
