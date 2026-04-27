@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient, Prisma } from "@generated/prisma/client";
+import { PrismaClient, Prisma } from "@/generated/prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { NextRequest, NextResponse } from "next/server";
 import { receiptSchema, schemaTab1, schemaTab2 } from "@/schemas/receiptCase"; // Import the new schema

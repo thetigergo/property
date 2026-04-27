@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext"; // 👈 Import the hook
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import React, { useState } from "react";
+import { useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
@@ -20,7 +20,7 @@ const Login = () => {
     passkey: string;
   };
 
-  const [formData, setFormData] = useState({});
+  // const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
   const [activeTab, setActiveTab] = useState(0);
@@ -39,65 +39,74 @@ const Login = () => {
 
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth(); // 👈 Get the global login function
+  const { nigamit, login } = useAuth(); // 👈 Get the global login function
 
   const onSubmit = async (data: LoginFormData) => {
-    setFormData(data);
+    // setFormData(data);
     setErrorMessage(""); // clear previous error
     setIsLoading(true);
 
     if (activeTab === 0) {
-      try {
-        const response = await fetch("/property/api/users", {
+      const logret = await login(data.userid, data.passkey); // Call the global login function with username and password
+
+      //try {
+      /*const response = await fetch("/property/api/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userid: data.userid, passkey: data.passkey }),
         });
-        console.log("Login failed:", formData);
-        if (!response.ok) {
-          const errData = await response.json();
-          //throw new Error("Login failed");
-          setErrorMessage(errData.error + ". Login failed");
+        console.log("Login failed:", formData);*/
+      /*const resp = await axios.post("/property/api/users", {
+          userid: data.userid,
+          passkey: data.passkey,
+        });
+        if (resp.status !== 200) {
+          const errData = await resp.data();
+          setErrorMessage(errData.error + "! Login failed");
         } else {
-          const result = await response.json();
+          const result = await resp.data.json();*/
 
-          // --- Simulate API Response after Successful Login ---
-          const authenticatedUserData = {
-            userId: data.userid,
-            pangalan: result.pangalan,
-            permiso: result.permiso,
-            officeId: result.officeid,
-            offcode: result.offcode,
-          };
-          login(authenticatedUserData);
-
-          const rights = result.permiso;
-          const hasA = rights.includes("A");
-          const hasB = rights.includes("B");
-          const hasC = rights.includes("C");
-          const has0 = rights.includes("0");
-          if (hasA || hasB) {
-            router.push("/ppe/sysadmin"); // or any route you want
-          } else if (hasC || has0) {
-            router.push("/ppe/departo"); // or any route you want
-          } else {
-            console.log("Rights include ?");
-            setErrorMessage("Rights include ?");
-          }
-          setInfoMessage("Login successful!");
+      // --- Simulate API Response after Successful Login ---
+      /*const authenticatedUserData = {
+        userId: data.userid,
+        pangalan: result.pangalan,
+        permiso: result.permiso,
+        officeId: result.officeid,
+        offcode: result.offcode,
+      };
+      login(authenticatedUserData);*/
+      if (logret === true && nigamit) {
+        const rights = nigamit.permiso;
+        const hasA = rights.includes("A");
+        const hasB = rights.includes("B");
+        const hasC = rights.includes("C");
+        const has0 = rights.includes("0");
+        if (hasA || hasB) {
+          router.push("/ppe/sysadmin"); // or any route you want
+        } else if (hasC || has0) {
+          router.push("/ppe/departo"); // or any route you want
+        } else {
+          console.log("Rights include ?");
+          setErrorMessage("Rights include ?");
         }
-      } catch (error) {
+        setInfoMessage("Login successful!");
+      } else {
+        setErrorMessage("Invalid credentials. Please try again.");
+      }
+      //}
+      /*} catch (error) {
         console.error("Error during login:", error);
         // Show error message to user
         setErrorMessage("Unknown error");
       } finally {
-        setIsLoading(false);
-      }
-
-      reset();
-    } else {
-      // Employee login logic
+      */
     }
+    setIsLoading(false);
+
+    reset();
+    //} else {
+    // Employee login logic
+    //}
   };
   const videos = [
     {
@@ -164,7 +173,7 @@ const Login = () => {
                 className="border-5 rounded-3xl p-4 w-[400px] max-w-md mx-auto mt-10"
               >
                 <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-sky-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-cyan-400 to-sky-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
                   <div className="absolute right-2 top-5 z-10">
                     <ThemeSwitcher />
                   </div>

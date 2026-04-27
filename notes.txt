@@ -1,10 +1,10 @@
 npx create-next-app@latest propinv --yes
 cd propinv
 npm install primereact primeicons primeflex
-npm install @prisma/extension-accelerate @prisma/client@6.19.0 dotenv --save-dev
-npx prisma init --datasource-provider postgresql --output ../generated/prisma
-ren prisma.config.ts prisma.config.ts.backup
-npx prisma generate --no-engine
+# npm install @prisma/extension-accelerate @prisma/client@6.19.0 dotenv --save-dev
+# npx prisma init --datasource-provider postgresql --output ../generated/prisma
+# ren prisma.config.ts prisma.config.ts.backup
+# npx prisma generate --no-engine
 /** .env **
  ** DATABASE_URL="postgresql://postgres:millennium%402000@172.16.7.252:5432/property"
 **/
@@ -15,8 +15,8 @@ npx prisma generate --no-engine
  **  schemas  = ["ppe", "prc"]
  **}
 **/
-npx prisma db pull
-npx prisma generate
+# npx prisma db pull
+# npx prisma generate
 /** create queryall.ts and execute npx tsx queryall.ts */
 
 npm install react-hook-form
@@ -29,5 +29,14 @@ npm install date-fns
 */
 
 
-npm install prisma@6.19.0 --save-dev
-npm install @prisma/client@6.19.0
+# npm install prisma@6.19.0 --save-dev
+# npm install @prisma/client@6.19.0
+
+npm install jose
+npm install axios
+
+
+npm install pg
+npm install --save-dev @types/pg
+
+npm uninstall prisma @prisma/client

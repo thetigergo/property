@@ -1,10 +1,17 @@
 import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@/generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
+// import { withAccelerate } from "@prisma/extension-accelerate";
+import { Pool } from "pg";
+import { makeToken } from "@/libs/tokenizer";
 import crypto from "crypto";
 
-const prisma = new PrismaClient().$extends(withAccelerate());
+// const prisma = new PrismaClient().$extends(withAccelerate());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,47 +21,60 @@ export async function POST(req: NextRequest) {
     if (!userid || !passkey) {
       return NextResponse.json(
         { error: "Missing userid or password" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    const userLog = await prisma.userlogs.findUnique({
+    /*const userLog = await prisma.userlogs.findUnique({
       where: { userid },
       include: { offices: true },
-    });
-
-    if (!userLog) {
+    });*/
+    const userLog = await pool.query(
+      "SELECT passkey FROM prc.userlogs WHERE (userid = $1);",
+      [userid],
+    );
+    const rowdata = userLog.rows[0];
+    if (!rowdata) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const hashKey = crypto.createHash("md5").update(passkey).digest("hex");
 
-    if (userLog.passkey !== hashKey) {
+    if (rowdata.passkey !== hashKey) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
-    const Responed = NextResponse.json({
-      pangalan: userLog.pangalan,
-      permiso: userLog.permiso,
-      officeid: userLog.officeid,
-      offcode: userLog.offices?.located,
-    });
-
     const now = new Date();
     const pinoyTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Manila" })
+      now.toLocaleString("en-US", { timeZone: "Asia/Manila" }),
     );
-    await prisma.userlogs.update({
+    /*await prisma.userlogs.update({
       where: { userid },
       data: {
         checkinn: pinoyTime, // ✅ this is a valid Date object
       },
+    });*/
+    await pool.query(
+      "UPDATE prc.userlogs SET checkinn = $1 WHERE (userid = $2);",
+      [pinoyTime, userid],
+    );
+
+    // 🔑 Generate token here
+    const token = await makeToken({ user: userid ?? "unknown" });
+
+    const Responed = NextResponse.json({
+      pangalan: rowdata.pangalan,
+      permiso: rowdata.permiso,
+      officeid: rowdata.officeid,
+      offcode: rowdata.offices?.located,
+      token: token,
     });
 
-    Responed.cookies.set("auth_token", "some_secure_token", {
+    Responed.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: true,
       path: "/",
-      expires: new Date(Date.now() + 60 /**2nd*/ * 30 /**mins*/ * 1000 /**ms*/), // → expires in 1 hour
+      //expires: new Date(Date.now() + 60 /**2nd*/ * 30 /**mins*/ * 1000 /**ms*/), // → expires in 1 hour
+      sameSite: "lax",
     });
 
     return Responed;
@@ -62,10 +82,11 @@ export async function POST(req: NextRequest) {
     console.error("Login error:", err);
     return NextResponse.json(
       { message: err + "Failed to fetch" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
-    await prisma.$disconnect();
+    //await prisma.$disconnect();
+    await pool.end();
     console.log("Querying Login finished.");
   }
 }
