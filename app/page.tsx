@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext"; // 👈 Import the hook
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
@@ -41,13 +41,30 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { nigamit, login } = useAuth(); // 👈 Get the global login function
 
+  useEffect(() => {
+    if (nigamit) {
+      console.log("User already logged in:", nigamit);
+      const rights = nigamit.permiso;
+      const hasA = rights.includes("A");
+      const hasB = rights.includes("B");
+      const hasC = rights.includes("C");
+      const has0 = rights.includes("0");
+      if (hasA || hasB) {
+        router.push("/sysadmin"); // or any route you want
+      } else if (hasC || has0) {
+        router.push("/departo"); // or any route you want
+      } else {
+        console.log("Rights include ?");
+      }
+    }
+  }, [nigamit, router]);
+
   const onSubmit = async (data: LoginFormData) => {
     // setFormData(data);
     setErrorMessage(""); // clear previous error
     setIsLoading(true);
 
     if (activeTab === 0) {
-      console.log("Data Form:", data)
       const logret = await login(data.userid, data.passkey); // Call the global login function with username and password
 
       //try {
@@ -76,20 +93,20 @@ const Login = () => {
         offcode: result.offcode,
       };
       login(authenticatedUserData);*/
-      if (logret === true && nigamit) {
-        const rights = nigamit.permiso;
+      if (logret === true) {
+        /*const rights = nigamit.permiso;
         const hasA = rights.includes("A");
         const hasB = rights.includes("B");
         const hasC = rights.includes("C");
         const has0 = rights.includes("0");
         if (hasA || hasB) {
-          router.push("/ppe/sysadmin"); // or any route you want
+          router.push("/sysadmin"); // or any route you want
         } else if (hasC || has0) {
-          router.push("/ppe/departo"); // or any route you want
+          router.push("/departo"); // or any route you want
         } else {
           console.log("Rights include ?");
           setErrorMessage("Rights include ?");
-        }
+        }*/
         setInfoMessage("Login successful!");
       } else {
         setErrorMessage("Invalid credentials. Please try again.");
@@ -101,13 +118,13 @@ const Login = () => {
         setErrorMessage("Unknown error");
       } finally {
       */
-    }
-    setIsLoading(false);
 
-    reset();
-    //} else {
-    // Employee login logic
-    //}
+      setIsLoading(false);
+
+      reset();
+    } else {
+      // Employee login logic
+    }
   };
   const videos = [
     {

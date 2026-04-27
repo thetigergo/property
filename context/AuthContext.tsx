@@ -40,12 +40,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
   const [nigamit, setUser] = useState<UserData | null>(null);
   const [token, setToken] = useState<string | null>(() => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("token");
-  }
-  return null;
-});
-
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  });
 
   // 2. Sync Axios and LocalStorage when token changes
   useEffect(() => {
@@ -60,6 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = useCallback(
     async (user: string, pass: string): Promise<boolean> => {
+      console.log("Attempting login with user:", user);
       try {
         const resp = await axios.post("/property/api/users", {
           userid: user,
@@ -76,11 +76,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return false;
         }
       } catch (error) {
-        console.error("Login error:", error);
+        if (axios.isAxiosError(error)) {
+          console.error(
+            "Login failed:",
+            error.response?.data?.error || error.message,
+          );
+        } else {
+          console.error("Unexpected error:", error);
+        }
         return false;
       }
     },
-    [],
+    [setUser, setToken],
   );
 
   const logout = useCallback(async () => {

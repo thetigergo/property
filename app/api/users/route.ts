@@ -4,42 +4,51 @@ import { NextRequest, NextResponse } from "next/server";
 // import { withAccelerate } from "@prisma/extension-accelerate";
 import { Pool } from "pg";
 import { makeToken } from "@/libs/tokenizer";
-import crypto from "crypto";
 
 // const prisma = new PrismaClient().$extends(withAccelerate());
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { userid, passkey } = body;
+  const body = await req.json();
+  const { userid, passkey } = body;
 
-    if (!userid || !passkey) {
-      return NextResponse.json(
-        { error: "Missing userid or password" },
-        { status: 400 },
-      );
-    }
-    /*const userLog = await prisma.userlogs.findUnique({
-      where: { userid },
-      include: { offices: true },
+  if (!userid || !passkey) {
+    return NextResponse.json(
+      { error: "Missing userid or password" },
+      { status: 400 },
+    );
+  }
+  /*const userLog = await prisma.userlogs.findUnique({
+    where: { userid },
+    include: { offices: true },
     });*/
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
+  try {
     const userLog = await pool.query(
-      "SELECT passkey FROM prc.userlogs WHERE (userid = $1);",
-      [userid],
+      `SELECT
+	      userlogs.passkey = MD5($1) AS passkey,
+	      userlogs.pangalan,
+	      userlogs.permiso,
+	      offices.offcid,
+	      offices.located
+      FROM
+	      prc.userlogs INNER JOIN prc.offices
+	      ON userlogs.officeid = offices.offcid
+      WHERE
+	      (userid = $2);`,
+      [passkey, userid],
     );
     const rowdata = userLog.rows[0];
-    if (!rowdata) {
+    const count = userLog.rowCount;
+    if (count === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const hashKey = crypto.createHash("md5").update(passkey).digest("hex");
-
-    if (rowdata.passkey !== hashKey) {
+    if (rowdata.passkey !== true) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
@@ -62,10 +71,11 @@ export async function POST(req: NextRequest) {
     const token = await makeToken({ user: userid ?? "unknown" });
 
     const Responed = NextResponse.json({
+      userId: userid,
       pangalan: rowdata.pangalan,
       permiso: rowdata.permiso,
-      officeid: rowdata.officeid,
-      offcode: rowdata.offices?.located,
+      officeid: rowdata.offcid,
+      offcode: rowdata.located,
       token: token,
     });
 
