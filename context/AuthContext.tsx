@@ -39,9 +39,13 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
   const [nigamit, setUser] = useState<UserData | null>(null);
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("token"),
-  );
+  const [token, setToken] = useState<string | null>(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("token");
+  }
+  return null;
+});
+
 
   // 2. Sync Axios and LocalStorage when token changes
   useEffect(() => {

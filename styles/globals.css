@@ -10,10 +10,9 @@
 @import "primereact/resources/primereact.min.css";
 @import "primeicons/primeicons.css";
 
-@import "tailwindcss/preflight";
-/*@tailwind base;
+@tailwind base;
 @tailwind components;
-@tailwind utilities;*/
+@tailwind utilities;
 
 :root {
   /* --background: #ffffff; */

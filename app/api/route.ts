@@ -4,14 +4,20 @@
  * */
 import "dotenv/config";
 import { /*NextRequest,*/ NextResponse } from "next/server";
-import { PrismaClient } from "@/generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
+// import { PrismaClient } from "@/generated/prisma/client";
+// import { withAccelerate } from "@prisma/extension-accelerate";
+import { Pool } from "pg";
 
-const prisma = new PrismaClient().$extends(withAccelerate());
+// const prisma = new PrismaClient().$extends(withAccelerate());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 export async function GET() {
   try {
-    const result = await prisma.$queryRaw<
+    const result = await pool.<
       {
         cat_id: string;
         categoria: string;

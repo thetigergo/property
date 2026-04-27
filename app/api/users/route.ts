@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@/generated/prisma/client";
+// import { PrismaClient } from "@/generated/prisma/client";
 // import { withAccelerate } from "@prisma/extension-accelerate";
 import { Pool } from "pg";
 import { makeToken } from "@/libs/tokenizer";
@@ -43,19 +43,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
-    const now = new Date();
+    /*const now = new Date();
     const pinoyTime = new Date(
       now.toLocaleString("en-US", { timeZone: "Asia/Manila" }),
-    );
-    /*await prisma.userlogs.update({
+      );
+      await prisma.userlogs.update({
       where: { userid },
       data: {
         checkinn: pinoyTime, // ✅ this is a valid Date object
       },
     });*/
     await pool.query(
-      "UPDATE prc.userlogs SET checkinn = $1 WHERE (userid = $2);",
-      [pinoyTime, userid],
+      "UPDATE prc.userlogs SET checkinn = NOW() WHERE (userid = $1);",
+      [userid],
     );
 
     // 🔑 Generate token here

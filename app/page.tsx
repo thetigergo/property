@@ -47,6 +47,7 @@ const Login = () => {
     setIsLoading(true);
 
     if (activeTab === 0) {
+      console.log("Data Form:", data)
       const logret = await login(data.userid, data.passkey); // Call the global login function with username and password
 
       //try {
