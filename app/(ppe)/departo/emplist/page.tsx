@@ -21,6 +21,8 @@ import { Menu } from "primereact/menu";
 import { Dialog } from "primereact/dialog";
 import { InputIcon } from "primereact/inputicon";
 
+import axios from "axios";
+
 interface EmpData {
   empkey: string;
   lname: string;
@@ -98,15 +100,18 @@ export default function EmployeeListing() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        let result = await fetch(
+        // let result = await fetch(
+        //   `/property/api/departo/emplist/%23${nigamit?.officeId}` /** # → %23; @ → %40 */,
+        //   {
+        //     method: "GET",
+        //     headers: { "Content-Type": "application/json" },
+        //   },
+        // );
+        let result = await axios.get(
           `/property/api/departo/emplist/%23${nigamit?.officeId}` /** # → %23; @ → %40 */,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
         );
 
-        if (!result.ok) {
+        if (result.status !== 200) {
           const message = result.statusText || "Unknown error";
           setErrorMessage(message);
           toast.current?.show({
@@ -117,28 +122,34 @@ export default function EmployeeListing() {
           });
           return;
         }
-        const data: EmpData[] = await result.json();
+        const data: EmpData[] = result.data;
         setEmpData(data);
 
         // Load Offices List
         if (has0) {
-          result = await fetch(
+          // result = await fetch(
+          //   `/property/api/departo/emplist/%40${nigamit?.officeId}` /** # → %23; @ → %40 */,
+          //   {
+          //     method: "GET",
+          //     headers: { "Content-Type": "application/json" },
+          //   },
+          // );
+          result = await axios.get(
             `/property/api/departo/emplist/%40${nigamit?.officeId}` /** # → %23; @ → %40 */,
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
           );
         } else {
-          result = await fetch(
+          // result = await fetch(
+          //   `/property/api/departo/emplist/%5A${nigamit?.officeId}` /** Z → %5A */,
+          //   {
+          //     method: "GET",
+          //     headers: { "Content-Type": "application/json" },
+          //   },
+          // );
+          result = await axios.get(
             `/property/api/departo/emplist/%5A${nigamit?.officeId}` /** Z → %5A */,
-            {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            }
           );
         }
-        const datos: Opesina[] = await result.json();
+        const datos: Opesina[] = result.data;
         const offclist: Opesina[] = datos.map((item: Opesina) => ({
           offcid: item.offcid,
           opesina: item.opesina,
@@ -222,7 +233,7 @@ export default function EmployeeListing() {
   ];
   const onInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    name: string
+    name: string,
   ) => {
     const val = (e.target && e.target.value) || "";
     const _product: Partial<EmpData> = { ...product };
@@ -361,14 +372,21 @@ export default function EmployeeListing() {
               offcids: pickedOffice?.map((evt) => evt.offcid) ?? [""],
             };
             try {
-              let response = await fetch("/property/api/departo/emplist", {
+              /*let response = await fetch("/property/api/departo/emplist", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(dataLoad),
-              });
-              if (!response.ok)
+              });*/
+              let tubag = await axios.put(
+                "/property/api/departo/emplist",
+                dataLoad,
+                {
+                  headers: { "Content-Type": "application/json" },
+                },
+              );
+              if (tubag.status !== 200)
                 throw new Error(
-                  response.statusText || "Failed to update employee"
+                  tubag.statusText || "Failed to update employee",
                 );
               else
                 toast.current?.show({
@@ -382,16 +400,22 @@ export default function EmployeeListing() {
               setEmpData([]); // Clear current data
 
               // Reload data
-              response = await fetch(
+              // response = await fetch(
+              //   `/property/api/departo/emplist/%23${nigamit?.officeId}` /** # → %23; @ → %40 */,
+              //   {
+              //     method: "GET",
+              //     headers: { "Content-Type": "application/json" },
+              //   },
+              // );
+              tubag = await axios.get(
                 `/property/api/departo/emplist/%23${nigamit?.officeId}` /** # → %23; @ → %40 */,
                 {
-                  method: "GET",
                   headers: { "Content-Type": "application/json" },
-                }
+                },
               );
 
-              if (!response.ok) {
-                const message = response.statusText || "Unknown error";
+              if (tubag.status !== 200) {
+                const message = tubag.statusText || "Unknown error";
                 setErrorMessage(message);
                 toast.current?.show({
                   severity: "error",
@@ -401,7 +425,7 @@ export default function EmployeeListing() {
                 });
                 return;
               }
-              const data: EmpData[] = await response.json();
+              const data: EmpData[] = tubag.data;
               setEmpData(data);
             } catch (error) {
               console.error("Error updating data:", error);
@@ -556,15 +580,20 @@ export default function EmployeeListing() {
               setError("At least one office must be selected.");
               return;
             }
-            const result = await fetch(
+            // const result = await fetch(
+            //   "/property/api/departo/emplist/Q1234567890",
+            //   {
+            //     method: "GET",
+            //     headers: { "Content-Type": "application/json" },
+            //   },
+            // );
+            const tubag = await axios.get(
               "/property/api/departo/emplist/Q1234567890",
               {
-                method: "GET",
                 headers: { "Content-Type": "application/json" },
-              }
+              },
             );
-            const datos = await result.json();
-            console.log("Next ID fetched:", datos);
+            const datos = tubag.data;
             const nextId: string = datos[0]?.nextid ?? "";
             const dataLoad: EmpData = {
               empkey: nextId,
@@ -577,14 +606,21 @@ export default function EmployeeListing() {
               offcids: chooseOffice?.map((evt) => evt.offcid) ?? [""],
             };
             try {
-              let response = await fetch("/property/api/departo/emplist", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dataLoad),
-              });
-              if (!response.ok)
+              // let response = await fetch("/property/api/departo/emplist", {
+              //   method: "POST",
+              //   headers: { "Content-Type": "application/json" },
+              //   body: JSON.stringify(dataLoad),
+              // });
+              let gawas = await axios.post(
+                "/property/api/departo/emplist",
+                dataLoad,
+                {
+                  headers: { "Content-Type": "application/json" },
+                },
+              );
+              if (gawas.status !== 200)
                 throw new Error(
-                  response.statusText || "Failed to create employee"
+                  gawas.statusText || "Failed to create employee",
                 );
               else
                 toast.current?.show({
@@ -598,16 +634,22 @@ export default function EmployeeListing() {
               setEmpData([]); // Clear current data
 
               // Reload data
-              response = await fetch(
+              // response = await fetch(
+              //   `/property/api/departo/emplist/%23${nigamit?.officeId}` /** # → %23; @ → %40 */,
+              //   {
+              //     method: "GET",
+              //     headers: { "Content-Type": "application/json" },
+              //   },
+              // );
+              gawas = await axios.get(
                 `/property/api/departo/emplist/%23${nigamit?.officeId}` /** # → %23; @ → %40 */,
                 {
-                  method: "GET",
                   headers: { "Content-Type": "application/json" },
-                }
+                },
               );
 
-              if (!response.ok) {
-                const message = response.statusText || "Unknown error";
+              if (gawas.status !== 200) {
+                const message = gawas.statusText || "Unknown error";
                 setErrorMessage(message);
                 toast.current?.show({
                   severity: "error",
@@ -617,7 +659,7 @@ export default function EmployeeListing() {
                 });
                 return;
               }
-              const data: EmpData[] = await response.json();
+              const data: EmpData[] = gawas.data;
               setEmpData(data);
             } catch (error) {
               console.error("Error updating data:", error);

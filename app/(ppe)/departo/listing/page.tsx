@@ -21,6 +21,7 @@ import { Menu } from "primereact/menu";
 import { useRouter } from "next/navigation";
 import { Dialog } from "primereact/dialog";
 import { InputIcon } from "primereact/inputicon";
+import axios from "axios";
 
 interface PARICSData {
   paricsno: number;
@@ -79,15 +80,19 @@ export default function ParIcsListing() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const result = await fetch(
+        /*const result = await fetch(
           "/property/api/departo/listing/" + nigamit?.officeId,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
-        );
-
-        if (!result.ok) {
+        );*/
+        const result = await axios.get("/property/api/departo/listing", {
+          params: {
+            offcid: nigamit?.officeId,
+          },
+        });
+        if (result.status !== 200) {
           const message = result.statusText || "Unknown error";
           setErrorMessage(message);
           toast.current?.show({
@@ -98,7 +103,7 @@ export default function ParIcsListing() {
           });
           return;
         }
-        const data: PARICSData[] = await result.json();
+        const data: PARICSData[] = result.data;
         setParicsData(data);
         initFilters();
       } catch (error) {
@@ -122,15 +127,21 @@ export default function ParIcsListing() {
     setIsLoading(true);
     setParicsData([]);
     try {
-      const result = await fetch(
+      /*const result = await fetch(
         `/property/api/departo/listing?offcid=${nigamit?.officeId}&anios=${evt.value}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         },
-      );
+      );*/
+      const result = await axios.get("/property/api/departo/listing", {
+        params: {
+          offcid: nigamit?.officeId,
+          anios: evt.value,
+        },
+      });
 
-      if (!result.ok) {
+      if (result.status !== 200) {
         const message = result.statusText || "Unknown error";
         setErrorMessage(message);
         toast.current?.show({
@@ -141,7 +152,7 @@ export default function ParIcsListing() {
         });
         return;
       }
-      const data: PARICSData[] = await result.json();
+      const data: PARICSData[] = result.data;
       setParicsData(data);
       initFilters();
       setAnois(evt.value ?? 0);
@@ -244,13 +255,16 @@ export default function ParIcsListing() {
   const handleDelete = async () => {
     setIsLoading(true);
     try {
-      const result = await fetch(`/property/api/departo/undone/${product}`, {
+      /*const result = await fetch(`/property/api/departo/undone/${product}`, {
         method: "DELETE",
-      });
-
+      });*/
+      const result = await axios.delete(
+        `/property/api/departo/undone/${product}`,
+      );
       // if (!res.ok) throw new Error("Delete failed");
-      if (!result.ok) setErrorMessage("Deletion failed!");
-      else {
+      if (result.status !== 200) {
+        setErrorMessage("Deletion failed!");
+      } else {
         // Refresh local state
         setParicsData((prev) =>
           prev.filter((item) => item.paricsno !== product),

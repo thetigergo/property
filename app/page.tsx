@@ -67,57 +67,11 @@ const Login = () => {
     if (activeTab === 0) {
       const logret = await login(data.userid, data.passkey); // Call the global login function with username and password
 
-      //try {
-      /*const response = await fetch("/property/api/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userid: data.userid, passkey: data.passkey }),
-        });
-        console.log("Login failed:", formData);*/
-      /*const resp = await axios.post("/property/api/users", {
-          userid: data.userid,
-          passkey: data.passkey,
-        });
-        if (resp.status !== 200) {
-          const errData = await resp.data();
-          setErrorMessage(errData.error + "! Login failed");
-        } else {
-          const result = await resp.data.json();*/
-
-      // --- Simulate API Response after Successful Login ---
-      /*const authenticatedUserData = {
-        userId: data.userid,
-        pangalan: result.pangalan,
-        permiso: result.permiso,
-        officeId: result.officeid,
-        offcode: result.offcode,
-      };
-      login(authenticatedUserData);*/
       if (logret === true) {
-        /*const rights = nigamit.permiso;
-        const hasA = rights.includes("A");
-        const hasB = rights.includes("B");
-        const hasC = rights.includes("C");
-        const has0 = rights.includes("0");
-        if (hasA || hasB) {
-          router.push("/sysadmin"); // or any route you want
-        } else if (hasC || has0) {
-          router.push("/departo"); // or any route you want
-        } else {
-          console.log("Rights include ?");
-          setErrorMessage("Rights include ?");
-        }*/
         setInfoMessage("Login successful!");
       } else {
         setErrorMessage("Invalid credentials. Please try again.");
       }
-      //}
-      /*} catch (error) {
-        console.error("Error during login:", error);
-        // Show error message to user
-        setErrorMessage("Unknown error");
-      } finally {
-      */
 
       setIsLoading(false);
 

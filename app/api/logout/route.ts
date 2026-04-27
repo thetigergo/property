@@ -1,38 +1,36 @@
 import "dotenv/config";
+import { Pool } from "pg";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { PrismaClient } from "@/generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
 
-const prisma = new PrismaClient().$extends(withAccelerate());
-const AUTH_COOKIE_KEY = "auth_token";
+// const prisma = new PrismaClient().$extends(withAccelerate());
+// const AUTH_COOKIE_KEY = "auth_token";
 
 export async function POST(req: NextRequest) {
+  const cookieStore = await cookies(); // ✅ Await this in Next.js 14+
+  const body = await req.json();
+  const { userid } = body;
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
   try {
-    const cookieStore = await cookies(); // ✅ Await this in Next.js 14+
-    const body = await req.json();
-    const { userid } = body;
-    console.log(userid);
-    const userLog = await prisma.userlogs.update({
-      where: { userid },
-      data: {
-        checkout: new Date(),
-      },
-    });
+    const userLog = await pool.query(
+      "UPDATE userlogs SET checkout = NOW() WHERE userid = $1;",
+      [userid],
+    );
     if (!userLog) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    cookieStore.delete(AUTH_COOKIE_KEY); // ✅ Now delete is available
+    // 2. Clear the cookie
+    cookieStore.delete("auth_token");
 
-    // ✅ Clear cookie (if you're using one)
-    const response = NextResponse.json({ success: true });
-    response.cookies.set(AUTH_COOKIE_KEY, "", {
-      path: "/",
-      expires: new Date(0),
-    });
-
-    return response;
+    // 🔑 Generate token here
+    const respond = NextResponse.json({ success: true }, { status: 200 });
+    return respond;
   } catch (error) {
     console.error("Error during server logout:", error);
     return NextResponse.json(
@@ -40,6 +38,6 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    await prisma.$disconnect();
+    await pool.end();
   }
 }

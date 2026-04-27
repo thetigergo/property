@@ -26,17 +26,17 @@ export default function SideMenuBar() {
         {
           label: "ICS/PAR Entry",
           icon: "pi pi-file",
-          command: () => router.push("/ppe/departo/receipt"),
+          command: () => router.push("/departo/receipt"),
         },
         {
           label: "Incomplete Data",
           icon: "pi pi-file",
-          command: () => router.push("/ppe/departo"),
+          command: () => router.push("/departo"),
         },
         {
           label: "ICS/PAR List",
           icon: "pi pi-file",
-          command: () => router.push("/ppe/departo/listing"),
+          command: () => router.push("/departo/listing"),
         },
       ],
       visible: hasC,
@@ -47,7 +47,7 @@ export default function SideMenuBar() {
         {
           label: "Entry Form",
           icon: "pi pi-file",
-          command: () => router.push("/ppe/departo/realty"),
+          command: () => router.push("/departo/realty"),
         },
         { label: "Property List", icon: "pi pi-file" },
       ],
@@ -72,7 +72,7 @@ export default function SideMenuBar() {
           label: "Unvalidated ICS/PAR",
           icon: "pi pi-file",
           visible: hasB,
-          command: () => router.push("/ppe/sysadmin"),
+          command: () => router.push("/sysadmin"),
         },
       ],
     },
@@ -83,7 +83,7 @@ export default function SideMenuBar() {
           label: "Physical Count",
           icon: "pi pi-twitch",
           visible: hasC, // ENDUSER
-          command: () => router.push("/ppe/departo/physical"),
+          command: () => router.push("/departo/physical"),
         },
         {
           label: "R.E.P. Inventory",
@@ -94,7 +94,7 @@ export default function SideMenuBar() {
           label: "Physical Count",
           icon: "pi pi-pulse pi-twitch",
           visible: hasB, // SUPERUSER
-          command: () => router.push("/ppe/sysadmin/physical"),
+          command: () => router.push("/sysadmin/physical"),
         },
       ],
     },
@@ -105,19 +105,19 @@ export default function SideMenuBar() {
         {
           label: "Offices",
           icon: "pi pi-building",
-          command: () => router.push("/ppe/sysadmin/officelist"),
+          command: () => router.push("/sysadmin/officelist"),
           visible: hasB,
         },
         {
           label: "Employees",
           icon: "pi pi-users",
-          command: () => router.push("/ppe/departo/emplist"),
+          command: () => router.push("/departo/emplist"),
           visible: has0,
         },
         {
           label: "Employees",
           icon: "pi pi-users",
-          command: () => router.push("/ppe/sysadmin/emplist"),
+          command: () => router.push("/sysadmin/emplist"),
           visible: hasB,
         },
         {
@@ -129,8 +129,7 @@ export default function SideMenuBar() {
         {
           label: "Category",
           icon: "pi pi-bounce pi-calendar-times",
-          command: () =>
-            router.push("/ppe/sysadmin/category", { scroll: true }),
+          command: () => router.push("/sysadmin/category", { scroll: true }),
           visible: hasA,
         },
         { label: "Subsidiary", icon: "pi pi-chart-pie", visible: hasA },
