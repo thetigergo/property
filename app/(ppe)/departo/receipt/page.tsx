@@ -458,7 +458,7 @@ export default function EntryPage() {
       <Toast ref={toast} />
       <Fieldset
         legend="ICS/PAR Entry Form"
-        className="h-auto min-w-5xl max-w-5xl max-h-[900px]"
+        className="h-auto w-full max-w-7xl max-h-[900px]"
       >
         <TabView
         /*activeIndex={activeTab}
