@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const userLog = await pool.query(
-      "UPDATE userlogs SET checkout = NOW() WHERE userid = $1;",
+      "UPDATE prc.userlogs SET checkout = NOW() WHERE (userid = $1);",
       [userid],
     );
     if (!userLog) {

@@ -80,41 +80,48 @@ export default function DepartoPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        /*const result = await fetch("/property/api/departo/undone/" + nigamit?.officeId,
+        /*const result = await fetch(
+          "/property/api/departo/undone/" + nigamit?.officeId,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
         );*/
+
         const result = await axios.get(
           `/property/api/departo/undone/${nigamit?.officeId}`,
-          { signal: signal }, // 2. Pass the signal here
+          { signal }, // 2. Pass the signal here
         ); // Axios automatically parses JSON and throws for non-2xx status
 
         // Axios throws automatically for non-2xx, so result.status is likely 200 here
-        if (Array.isArray(result.data)) {
-          const data: Undone[] = result.data;
+        if (result.status === 200) {
+          const data: Undone[] = await result.data;
           setUndone(data);
           initFilters();
         } else {
-          console.error("Received data is not an array:", result.data);
           setUndone([]); // Fallback to empty array to prevent crash
         }
       } catch (error) {
         // 3. Handle the Abort error differently so it doesn't show a "Load Error" toast
         if (axios.isCancel(error)) {
           console.log("Request canceled:", error.message);
+          toast.current?.show({
+            severity: "error",
+            summary: "Request Canceled!",
+            detail: error.message,
+            life: 5000,
+          });
           return; // Exit without showing error messages to the user
+        } else {
+          const fallbackMessage = "Failed to load Unfinished ICS/PAR list.";
+          setErrorMessage(fallbackMessage);
+          toast.current?.show({
+            severity: "error",
+            summary: "Load Error",
+            detail: fallbackMessage,
+            life: 5000,
+          });
         }
-        console.error("Error loading data:", error);
-        const fallbackMessage = "Failed to load Unfinished ICS/PAR list.";
-        setErrorMessage(fallbackMessage);
-        toast.current?.show({
-          severity: "error",
-          summary: "Load Error",
-          detail: fallbackMessage,
-          life: 5000,
-        });
       } finally {
         // 4. Only set loading to false if the request wasn't aborted
         // (Optional: standard practice is to let it run, but helps prevent state updates on unmounted components)
@@ -122,11 +129,11 @@ export default function DepartoPage() {
       }
     };
 
-    if (nigamit?.officeId) fetchData();
+    if (nigamit?.officeId && isLoading) fetchData();
 
     // 5. THE CLEANUP: This runs when the component unmounts or officeId changes
     return () => controller.abort();
-  }, [nigamit?.officeId]);
+  }, [nigamit?.officeId, isLoading]);
 
   const dateShow = (rowData: Undone) => {
     return formatDate(new Date(rowData.preparar));

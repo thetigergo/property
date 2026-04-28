@@ -9,6 +9,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
@@ -28,19 +30,21 @@ export async function GET(
         ((mrproperty.empkey IS NULL) OR
          (mrproperty.nagdawat IS NULL) OR
          (mrproperty.printed = FALSE))
-      ORDER BY mrproperty.preparar ASC;`,
-      [(await params).id],
+      ORDER BY
+        mrproperty.preparar ASC;`,
+      [id],
     );
-    if (!undone)
+    if (undone.rowCount === 0)
       return NextResponse.json({ error: "Record not found" }, { status: 404 });
 
     return NextResponse.json(
       undone.rows.map((item) => ({
         icsareno: item.icsareno,
-        preparar: item.preparar.getTime(),
+        preparar: item.preparar ? new Date(item.preparar).getTime() : null,
         gikanni: item.gikanni === null,
         categoria: item.categoria,
       })),
+      { status: 200 },
     );
   } catch (e) {
     console.error("PPE Error:", e);
@@ -92,12 +96,10 @@ export async function DELETE(
         { status: 404 },
       );
     }
-    return NextResponse.json(
-      {
-        message: `Receipt ${parics} and ${totalDeleted} related records successfully deleted.`,
-      },
-      { status: 200 },
-    );
+    return NextResponse.json({
+      message: `Receipt ${parics} and ${totalDeleted} related records successfully deleted.`,
+      status: 200,
+    });
   } catch (e) {
     await client.query("ROLLBACK");
     console.error("Database error:", e);

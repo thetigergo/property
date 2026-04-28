@@ -34,6 +34,6 @@ export async function proxy(request: NextRequest) {
 
 // Only run middleware on these paths
 export const config = {
-  matcher: ["/property/:path*", "/api/:path*"],
+  matcher: ["/property/:path*", "/property/api/:path*"],
   //matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

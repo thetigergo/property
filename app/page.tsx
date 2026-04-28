@@ -163,7 +163,7 @@ const Login = () => {
                       activeIndex={activeTab}
                       onTabChange={(e) => setActiveTab(e.index)}
                     >
-                      <TabPanel header="Personnel" leftIcon="pi pi-user">
+                      <TabPanel header="Personnel" leftIcon="pi pi-user mr-2">
                         <div className="login-page">
                           <div className="p-fluid">
                             <form
@@ -236,7 +236,10 @@ const Login = () => {
                           </div>
                         </div>
                       </TabPanel>
-                      <TabPanel header="Employee" leftIcon="pi pi-briefcase">
+                      <TabPanel
+                        header="Employee"
+                        leftIcon="pi pi-briefcase mr-2"
+                      >
                         <div className="login-page">
                           <div className="p-fluid">
                             <form className="p-fluid">
@@ -282,7 +285,7 @@ const Login = () => {
                           </div>
                         </div>
                       </TabPanel>
-                      <TabPanel header="Tutorials" leftIcon="pi pi-video">
+                      <TabPanel header="Tutorials" leftIcon="pi pi-video mr-2">
                         <ListBox
                           options={videos}
                           optionLabel="title"

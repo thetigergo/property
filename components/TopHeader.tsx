@@ -58,7 +58,7 @@ const defaultFilters: DataTableFilterMeta = {
 };
 
 export default function TopHeader() {
-  const { nigamit, logout, loading } = useAuth();
+  const { nigamit, logout } = useAuth();
 
   const menuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
@@ -78,7 +78,7 @@ export default function TopHeader() {
       currentTheme: string,
       newTheme: string,
       linkElementId: string,
-      callback: () => void
+      callback: () => void,
     ) => void;
   };
   /**
@@ -103,7 +103,6 @@ export default function TopHeader() {
     {
       label: "Categories",
       icon: "pi pi-box",
-      disabled: loading,
       command: () => setShowDialog(true),
     },
     {
@@ -274,12 +273,12 @@ export default function TopHeader() {
                 size === 7
                   ? 0
                   : size === 11
-                  ? 5
-                  : size === 14
-                  ? 10
-                  : size === 18
-                  ? 15
-                  : 0
+                    ? 5
+                    : size === 14
+                      ? 10
+                      : size === 18
+                        ? 15
+                        : 0,
               );
               return `${balik}${rowData.catego}`;
             }}

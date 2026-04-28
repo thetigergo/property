@@ -86,6 +86,7 @@ export async function DELETE(req: NextRequest) {
         [paricsNum, things],
       ),
     ]);
+    await pool.query("COMMIT"); // Commit the transaction
 
     const totalDeleted =
       (itemizeResult.rowCount ?? 0) + (detalyesResult.rowCount ?? 0);
@@ -96,7 +97,8 @@ export async function DELETE(req: NextRequest) {
       { status: 200 },
     );
   } catch (e) {
-    console.error("Prisma error:", e);
+    await pool.query("ROLLBACK"); // Rollback the transaction on error
+    console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   } finally {
     await pool.end();
