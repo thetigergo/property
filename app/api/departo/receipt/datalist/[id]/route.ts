@@ -2,19 +2,21 @@ import "dotenv/config";
 /**
  * app\api\departo\receipt\datalist\[id]\route.ts
  */
-import { PrismaClient, Prisma } from "@generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient().$extends(withAccelerate());
+import { Pool } from "pg";
 
 // 1. Define the correct arguments for the handler
 //    The first argument is the request object (NextRequest)
 //    The second argument is an object containing the params
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
   try {
     const { id } = await params;
     const parics = parseInt(id);
@@ -22,23 +24,21 @@ export async function GET(
     if (isNaN(parics))
       return NextResponse.json(
         { error: "Invalid User ID format." },
-        { status: 400 }
+        { status: 400 },
       );
 
-    const result = await prisma.$queryRaw<
-      {
-        catdtld: string;
-        quantiy: number;
-        issued: string;
-        detalye: string;
-        specifyd: string;
-        unitcost: number;
-        acquired: number;
-        uselife: number;
-        property: string;
-      }[]
-    >(Prisma.sql`
-        SELECT
+    const result = await pool.query<{
+      catdtld: string;
+      quantiy: number;
+      issued: string;
+      detalye: string;
+      specifyd: string;
+      unitcost: number;
+      acquired: number;
+      uselife: number;
+      property: string;
+    }>(
+      ` SELECT
           catdetails.catdtld,
           mrdetalyes.quantiy,
           mrdetalyes.issued,
@@ -54,9 +54,11 @@ export async function GET(
           ON catdetails.cat_id = catsiblings.cat_id  
           AND catsiblings.subcat = catdetails.sub_cats  
         WHERE 
-          (mrdetalyes.icsareno = ${parics});`);
+          (mrdetalyes.icsareno = $1);`,
+      [parics],
+    );
     return NextResponse.json(
-      result.map((item) => ({
+      result.rows.map((item) => ({
         catdtld: item.catdtld,
         quantiy: item.quantiy,
         issued: item.issued,
@@ -67,13 +69,13 @@ export async function GET(
         acquired: new Date(item.acquired),
         uselife: item.uselife,
         property: item.property,
-      }))
+      })),
     );
   } catch (e) {
-    console.error("Prisma error:", e);
+    console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    await pool.end();
     console.log("Querying Employee finished.");
   }
 }

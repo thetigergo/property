@@ -1,39 +1,46 @@
 import "dotenv/config";
-import { PrismaClient, Prisma } from "@generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient().$extends(withAccelerate());
+import { Pool } from "pg";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const offcId = searchParams.get("offcid");
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
   try {
-    const result = await prisma.$queryRaw<
-      { empkey: string; humane: string; designate: string }[]
-    >(Prisma.sql`
-        SELECT  
+    const result = await pool.query<{
+      empkey: string;
+      humane: string;
+      designate: string;
+    }>(
+      ` SELECT  
             empkey,
             CONCAT(lname, ', ', fname, ' ', suffix, COALESCE(suffix, '', ' '), mname) AS humane,
             designate
         FROM
             ppe.employees
         WHERE
-            (jstatus = 1) AND (offcid = ${offcId})
+            (jstatus = 1) AND (offcid = $1)
         ORDER BY 
-            lname, fname, mname;`);
+            lname, fname, mname;`,
+      [offcId],
+    );
     return NextResponse.json(
-      result.map((item) => ({
+      result.rows.map((item) => ({
         empkey: item.empkey,
         humane: item.humane,
         designate: item.designate,
-      }))
+      })),
     );
   } catch (e) {
     console.error("Prisma error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    await pool.end();
     console.log("Querying Employee finished.");
   }
 }

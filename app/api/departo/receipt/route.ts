@@ -1,11 +1,8 @@
 import "dotenv/config";
-import { PrismaClient, Prisma } from "@/generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
 import { NextRequest, NextResponse } from "next/server";
 import { receiptSchema, schemaTab1, schemaTab2 } from "@/schemas/receiptCase"; // Import the new schema
 import { z } from "zod";
-
-const prisma = new PrismaClient().$extends(withAccelerate());
+import { Pool } from "pg";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -18,34 +15,44 @@ export async function GET(req: NextRequest) {
       { error: "Missing 'anios' parameter" },
       { status: 400 },
     );
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
   try {
     if (anios && typed === "icsare") {
       const nahimo = parseInt(anios, 10);
       const bulana = parseInt(petsaha ? petsaha : "1", 10);
-      const result = await prisma.$queryRaw<{ newicsare: string }[]>(Prisma.sql`
-                                SELECT  
-                                  CASE WHEN MAX(icsareno) IS NULL THEN
-                                    TRIM(TO_CHAR(COALESCE(MAX(icsareno), 0) + 1, '0000')) 
-                                  ELSE
-                                    SUBSTRING((MAX(icsareno) + 1)::TEXT, 7) 
-                                  END AS newIcsAre
-                                FROM
-                                  ppe.mrproperty
-                                WHERE
-                                  (DATE_PART('YEAR', preparar) = ${nahimo}) AND
-                                  (DATE_PART('MONTH', preparar) = ${bulana});`);
-      const item = result[0];
+      const result = await pool.query<{ newicsare: string }>(
+        `SELECT  
+          CASE WHEN MAX(icsareno) IS NULL THEN
+            TRIM(TO_CHAR(COALESCE(MAX(icsareno), 0) + 1, '0000')) 
+          ELSE
+            SUBSTRING((MAX(icsareno) + 1)::TEXT, 7) 
+          END AS newIcsAre
+        FROM
+          ppe.mrproperty
+        WHERE
+          (DATE_PART('YEAR', preparar) = $1) AND
+          (DATE_PART('MONTH', preparar) = $2);`,
+        [nahimo, bulana],
+      );
+      const item = result.rows[0];
       return NextResponse.json({ icsareno: item.newicsare });
     } else if (expcode && anios) {
       const nahimo = parseInt(anios, 10);
-      const result = await prisma.$queryRaw<{ seqno: number }[]>(Prisma.sql`
-                                SELECT 
-                                    COALESCE(MAX(mrdetalyes.lastseq), 0) as seqno
-                                FROM ppe.mrdetalyes INNER JOIN ppe.mrproperty
-                                    ON mrdetalyes.icsareno = mrproperty.icsareno
-                                WHERE (mrproperty.expcode = ${expcode}) AND
-                                    (DATE_PART('YEAR', mrdetalyes.acquired) =  ${nahimo});`);
-      const item = result[0];
+      const result = await pool.query<{ seqno: number }>(
+        `SELECT 
+            COALESCE(MAX(mrdetalyes.lastseq), 0) as seqno
+        FROM ppe.mrdetalyes INNER JOIN ppe.mrproperty
+            ON mrdetalyes.icsareno = mrproperty.icsareno
+        WHERE (mrproperty.expcode = $1) AND
+            (DATE_PART('YEAR', mrdetalyes.acquired) = $2);`,
+        [expcode, nahimo],
+      );
+      const item = result.rows[0];
       return NextResponse.json({ icsareno: item.seqno });
     } else if (anios && petsaha) {
       // Convert timestamp to Date object
@@ -57,20 +64,19 @@ export async function GET(req: NextRequest) {
         );
       }
       const dateObject = new Date(timestamp);
-      const result = await prisma.setparam.findMany({
-        where: {
-          AND: { frdate: { lte: dateObject }, todate: { gte: dateObject } },
-        },
-        select: { icsare: true },
-      });
-      const item = result[0];
+      const result = await pool.query<{ icsare: string }>(
+        "SELECT icsare FROM ppe.setparam WHERE ($1 BETWEEN frdate AND todate)",
+        [dateObject],
+      );
+
+      const item = result.rows[0];
       return NextResponse.json({ icsareno: item.icsare });
     }
   } catch (e) {
-    console.error("Prisma error:", e);
+    console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    await pool.end();
     console.log("Querying Append finished.");
   }
 }
@@ -129,103 +135,162 @@ export async function POST(req: NextRequest) {
   }
 
   const { activo, ...data } = validation.data;
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+  const client = await pool.connect();
+
   try {
     // 🔑 Key: Use the $transaction method
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Transaction BEGINs automatically here.
 
-      if (activo === 0) {
-        // TypeScript now knows 'data' contains all fields from schemaTab1
-        const tab1Data = data as z.infer<typeof schemaTab1>;
+    // 1. Transaction BEGINs automatically here.
+    await client.query("BEGIN"); // Start the transaction
 
-        // ➡️ OPERATION 1: Create the main receipt record
-        let mainRecord = await tx.mrproperty.findUnique({
-          where: { icsareno: tab1Data.icsareno },
-        });
-        if (!mainRecord) {
-          const petsa = new Date(tab1Data.preparar).getTime();
-          const maked = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
-          mainRecord = await tx.mrproperty.create({
-            data: {
-              icsareno: tab1Data.icsareno,
-              preparar: maked ? new Date(maked) : new Date(),
-              opesina: tab1Data.opesina,
-              expcode: tab1Data.expcode,
-              user_id: tab1Data.userid,
-            },
-          });
-        }
+    if (activo === 0) {
+      // TypeScript now knows 'data' contains all fields from schemaTab1
+      const tab1Data = data as z.infer<typeof schemaTab1>;
 
-        // ➡️ OPERATION 2: Update the related inventory count
-        // This operation depends on the success of the first one.
-        const petsa = new Date(tab1Data.acquired).getTime();
-        const nakuha = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
-        const detailRecord = await tx.mrdetalyes.create({
+      // ➡️ OPERATION 1: Create the main receipt record
+      let mainRecord = await client.query(
+        "SELECT icsareno FROM ppe.mrproperty WHERE (icsareno = $1)",
+        [tab1Data.icsareno],
+      );
+      if (mainRecord.rowCount === 0) {
+        const petsa = new Date(tab1Data.preparar).getTime();
+        const maked = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
+        /*mainRecord = await tx.mrproperty.create({
           data: {
             icsareno: tab1Data.icsareno,
-            catdtld: tab1Data.catdetl,
-            quantiy: tab1Data.kabook,
-            issued: tab1Data.prefixed,
-            specifyd: tab1Data.specific,
-            unitcost: tab1Data.costing ?? 0,
-            itemno: 0,
-            acquired: nakuha ? new Date(nakuha) : new Date(),
-            uselife: tab1Data.lifespan,
-            property: tab1Data.butang,
-            acronyear: tab1Data.acronym,
-            lastseq: tab1Data.lastseq,
-            acknowledge: tab1Data.thresh,
+            preparar: maked ? new Date(maked) : new Date(),
+            opesina: tab1Data.opesina,
+            expcode: tab1Data.expcode,
+            user_id: tab1Data.userid,
           },
-        });
-
-        const detailsArray = generateItemizeRecords(
-          tab1Data.butang,
-          tab1Data.kabook,
-          tab1Data.lastseq - tab1Data.kabook + 1,
-          tab1Data.icsareno,
-          tab1Data.acronym.substring(0, 3),
+        });*/
+        mainRecord = await client.query(
+          "INSERT INTO ppe.mrproperty (icsareno, preparar, opesina, expcode, user_id) VALUES ($1, $2, $3, $4, $5);",
+          [
+            tab1Data.icsareno,
+            maked ? new Date(maked) : new Date(),
+            tab1Data.opesina,
+            tab1Data.expcode,
+            tab1Data.userid,
+          ],
         );
-
-        // 2. Perform the bulk insert using the transaction client (tx)
-        const itemizeResult = await tx.mritemize.createMany({
-          data: detailsArray,
-        });
-
-        // 3. Transaction COMMITs automatically here if no errors were thrown.
-
-        // Return data from the transaction block
-        return {
-          centro: mainRecord,
-          detail: detailRecord,
-          itemize: itemizeResult.count,
-        };
-      } else {
-        const tab2Data = data as z.infer<typeof schemaTab2>;
-        const mainRecord = await tx.mrproperty.update({
-          where: { icsareno: tab2Data.icsareno },
-          data: {
-            empkey: tab2Data.empkey,
-            designate: tab2Data.designate,
-            details: tab2Data.details,
-            nagdawat: tab2Data.nagdawat,
-            ranggo: tab2Data.ranggo,
-          },
-        });
-        return { centro: mainRecord };
       }
-    });
+
+      // ➡️ OPERATION 2: Update the related inventory count
+      // This operation depends on the success of the first one.
+      const petsa = new Date(tab1Data.acquired).getTime();
+      const nakuha = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
+      /*const detailRecord = await tx.mrdetalyes.create({
+        data: {
+          icsareno: tab1Data.icsareno,
+          catdtld: tab1Data.catdetl,
+          quantiy: tab1Data.kabook,
+          issued: tab1Data.prefixed,
+          specifyd: tab1Data.specific,
+          unitcost: tab1Data.costing ?? 0,
+          itemno: 0,
+          acquired: nakuha ? new Date(nakuha) : new Date(),
+          uselife: tab1Data.lifespan,
+          property: tab1Data.butang,
+          acronyear: tab1Data.acronym,
+          lastseq: tab1Data.lastseq,
+          acknowledge: tab1Data.thresh,
+        },
+      });*/
+      const detailRecord = await client.query(
+        "INSERT INTO ppe.mrdetalyes (icsareno, catdtld, quantiy, issued, specifyd, unitcost, itemno, acquired, uselife, property, acronyear, lastseq, acknowledge) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);",
+        [
+          tab1Data.icsareno,
+          tab1Data.catdetl,
+          tab1Data.kabook,
+          tab1Data.prefixed,
+          tab1Data.specific,
+          tab1Data.costing ?? 0,
+          0,
+          nakuha ? new Date(nakuha) : new Date(),
+          tab1Data.lifespan,
+          tab1Data.butang,
+          tab1Data.acronym,
+          tab1Data.lastseq,
+          tab1Data.thresh,
+        ],
+      );
+
+      const detailsArray = generateItemizeRecords(
+        tab1Data.butang,
+        tab1Data.kabook,
+        tab1Data.lastseq - tab1Data.kabook + 1,
+        tab1Data.icsareno,
+        tab1Data.acronym.substring(0, 3),
+      );
+
+      // 2. Perform the bulk insert using the transaction client (tx)
+      /*const itemizeResult = await tx.mritemize.createMany({
+        data: detailsArray,
+      });*/
+      const itemizeResult = await client.query(
+        "INSERT INTO ppe.mritemize (property, peritems, icsareno, occurred) VALUES ($1, $2, $3, $4);",
+        detailsArray.map((record) => [
+          record.property,
+          record.peritems,
+          record.icsareno,
+          record.occurred,
+        ]),
+      );
+
+      // Explicitly commit the transaction
+      await client.query("COMMIT");
+
+      // Return data from the transaction block
+      return {
+        centro: mainRecord,
+        detail: detailRecord,
+        itemize: itemizeResult.rowCount,
+      };
+    } else {
+      const tab2Data = data as z.infer<typeof schemaTab2>;
+      /*const mainRecord = await tx.mrproperty.update({
+        where: { icsareno: tab2Data.icsareno },
+        data: {
+          empkey: tab2Data.empkey,
+          designate: tab2Data.designate,
+          details: tab2Data.details,
+          nagdawat: tab2Data.nagdawat,
+          ranggo: tab2Data.ranggo,
+        },
+      });*/
+
+      await client.query("BEGIN"); // Start a new transaction for the update
+      await client.query(
+        "UPDATE ppe.mrproperty SET empkey = $1, designate = $2, details = $3, nagdawat = $4, ranggo = $5 WHERE (icsareno = $6);",
+        [
+          tab2Data.empkey,
+          tab2Data.designate,
+          tab2Data.details,
+          tab2Data.nagdawat,
+          tab2Data.ranggo,
+          /** ------------- */
+          tab2Data.icsareno,
+        ],
+      );
+      await client.query("COMMIT"); // Commit the update transaction
+      // return { centro: mainRecord };
+    }
 
     // Send a success response back to the client
-    return NextResponse.json(
-      {
-        message: "Transaction completed successfully.",
-        data: result,
-      },
-      { status: 201 },
-    );
+    return NextResponse.json({
+      message: "Transaction completed successfully.",
+      status: 201,
+    });
   } catch (error) {
     // This block catches the error thrown inside $transaction,
     // confirming the ROLLBACK.
+    await client.query("ROLLBACK"); // Rollback the transaction on error
     console.error("Transaction failed and was rolled back:", error);
 
     return NextResponse.json(
@@ -236,5 +301,9 @@ export async function POST(req: NextRequest) {
       },
       { status: 400 },
     );
+  } finally {
+    client.release(); // Release the client back to the pool
+    await pool.end();
+    console.log("Transaction process finished.");
   }
 }

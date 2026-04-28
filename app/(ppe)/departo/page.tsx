@@ -92,10 +92,14 @@ export default function DepartoPage() {
         ); // Axios automatically parses JSON and throws for non-2xx status
 
         // Axios throws automatically for non-2xx, so result.status is likely 200 here
-        console.log("Data fetched successfully:", result.data);
-        const data: Undone[] = result.data;
-        setUndone(data);
-        initFilters();
+        if (Array.isArray(result.data)) {
+          const data: Undone[] = result.data;
+          setUndone(data);
+          initFilters();
+        } else {
+          console.error("Received data is not an array:", result.data);
+          setUndone([]); // Fallback to empty array to prevent crash
+        }
       } catch (error) {
         // 3. Handle the Abort error differently so it doesn't show a "Load Error" toast
         if (axios.isCancel(error)) {

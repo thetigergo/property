@@ -24,6 +24,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Menu } from "primereact/menu";
 import { Dialog } from "primereact/dialog";
+import axios from "axios";
 
 interface Prefix {
   label: string;
@@ -457,7 +458,7 @@ export default function EntryPage() {
       <Toast ref={toast} />
       <Fieldset
         legend="ICS/PAR Entry Form"
-        className="h-auto min-w-[1024px] max-w-[1024px] max-h-[900px]"
+        className="h-auto min-w-5xl max-w-5xl max-h-[900px]"
       >
         <TabView
         /*activeIndex={activeTab}
@@ -483,38 +484,47 @@ export default function EntryPage() {
                   let result;
                   let data;
                   if (icsareno === 0) {
-                    result = await fetch(
+                    /*result = await fetch(
                       `/property/api/departo/receipt?anios=${tuiga}&type=icsare&petsa=${bulan}`,
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
                       },
-                    );
-                    data = await result.json();
+                    );*/
+                    result = await axios.get("/property/api/departo/receipt", {
+                      params: { anios: tuiga, type: "icsare", petsa: bulan },
+                    });
+                    data = await result.data();
                     parics = parseInt(tuiga + bulan + data.icsareno, 10);
                     setIcsAre(parics);
                   }
 
                   // Fetch the last sequence number for the given year and expcode
-                  result = await fetch(
+                  /*result = await fetch(
                     `/property/api/departo/receipt?anios=${tuiga}&expcode=${pickedCats?.value}`,
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },
                     },
-                  );
-                  data = await result.json();
+                  );*/
+                  result = await axios.get("/property/api/departo/receipt", {
+                    params: { anios: tuiga, expcode: pickedCats?.value },
+                  });
+                  data = await result.data();
                   const orderno = data.icsareno;
 
                   // Fetch the Threshold for the given date
-                  result = await fetch(
+                  /*result = await fetch(
                     `/property/api/departo/receipt?anios=${tuiga}&petsa=${petsa.dawat?.getTime()}`,
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },
                     },
-                  );
-                  data = await result.json();
+                  );*/
+                  result = await axios.get("/property/api/departo/receipt", {
+                    params: { anios: tuiga, petsa: petsa.dawat?.getTime() },
+                  });
+                  data = await result.data();
                   const threshold = data.icsareno;
 
                   // Check if the payload is ready (using the variables defined above)
@@ -1008,7 +1018,7 @@ export default function EntryPage() {
                         aria-multiline="true"
                         required
                         aria-required="true"
-                        className="w-[100%]"
+                        className="w-full"
                         onChange={(e) => setSpecific(e.target.value)}
                       />
                     </td>
@@ -1198,7 +1208,7 @@ export default function EntryPage() {
                         id="rank"
                         value={gotPerson?.designate ?? ""}
                         size={25}
-                        className="w-[100%]"
+                        className="w-full"
                         readOnly
                       />
                     </td>
@@ -1207,7 +1217,7 @@ export default function EntryPage() {
                         id="ango"
                         value={position}
                         size={25}
-                        className="w-[100%]"
+                        className="w-full"
                         onChange={(e) => {
                           setPosition(e.target.value);
                         }}
@@ -1532,7 +1542,7 @@ export default function EntryPage() {
             aria-multiline="true"
             required
             aria-required="true"
-            className="w-[100%]"
+            className="w-full"
             // onChange={(e) => setSpecific(e.target.value)}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
               onInputTextAreaChange(e, "specifyd")

@@ -71,18 +71,15 @@ export async function DELETE(
 
     // 3. Execute your queries using the same client
     // Note: Use $1, $2 etc. for parameterized queries to prevent SQL injection
-    const res1 = await client.query(
-      "DELETE FROM ppe.mritemize WHERE (icsareno = $1)",
-      [parics],
-    );
-    const res2 = await client.query(
-      "DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1)",
-      [parics],
-    );
-    const res3 = await client.query(
-      "DELETE FROM ppe.mrproperty WHERE (icsareno = $1)",
-      [parics],
-    );
+    const [res1, res2, res3] = await Promise.all([
+      client.query("DELETE FROM ppe.mritemize WHERE (icsareno = $1)", [parics]),
+      client.query("DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1)", [
+        parics,
+      ]),
+      client.query("DELETE FROM ppe.mrproperty WHERE (icsareno = $1)", [
+        parics,
+      ]),
+    ]);
 
     // 4. Commit the transaction
     await client.query("COMMIT");
