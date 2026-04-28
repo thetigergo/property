@@ -59,7 +59,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = useCallback(
     async (user: string, pass: string): Promise<boolean> => {
-      console.log("Attempting login with user:", user);
       try {
         const resp = await axios.post("/property/api/users", {
           userid: user,

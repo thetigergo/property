@@ -3,41 +3,20 @@
  */
 import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, Prisma } from "@/generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
-
-const prisma = new PrismaClient().$extends(withAccelerate());
+import { Pool } from "pg";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  // const { id } = await params;
-
-  // if (!id)
-  //   return NextResponse.json({ error: "Missing offcid" }, { status: 400 });
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
 
   try {
-    /*const undone = await prisma.mrproperty.findMany({
-      where: {
-        opesina: (await params).id,
-        OR: [{ empkey: null }, { nagdawat: null }, { printed: false }],
-      },
-      include: {
-        categories: true, // this joins with prc.categories
-      },
-      orderBy: {
-        preparar: "asc", // ORDER BY mrproperty.preparar
-      },
-    });*/
-    const undone = await prisma.$queryRaw<
-      {
-        icsareno: number;
-        preparar: Date;
-        gikanni: string;
-        categoria: string;
-      }[]
-    >`SELECT 
+    const undone = await pool.query(
+      `SELECT 
         mrproperty.icsareno,
         mrproperty.preparar,
         mrproperty.gikanni,
@@ -45,68 +24,90 @@ export async function GET(
       FROM ppe.mrproperty INNER JOIN prc.categories
         ON mrproperty.expcode = categories.cat_id
       WHERE
-        (mrproperty.opesina = ${(await params).id}) AND
+        (mrproperty.opesina = $1) AND
         ((mrproperty.empkey IS NULL) OR
          (mrproperty.nagdawat IS NULL) OR
          (mrproperty.printed = FALSE))
-      ORDER BY mrproperty.preparar ASC;`;
+      ORDER BY mrproperty.preparar ASC;`,
+      [(await params).id],
+    );
     if (!undone)
       return NextResponse.json({ error: "Record not found" }, { status: 404 });
 
     return NextResponse.json(
-      undone.map((item) => ({
+      undone.rows.map((item) => ({
         icsareno: item.icsareno,
         preparar: item.preparar.getTime(),
         gikanni: item.gikanni === null,
         categoria: item.categoria,
-      }))
+      })),
     );
   } catch (e) {
     console.error("PPE Error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    await pool.end();
     console.log("Querying Undone finished.");
   }
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   const parics = parseInt(id, 10);
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+
+  // 1. Get a dedicated client from the pool for the transaction
+  const client = await pool.connect();
   try {
-    const results = await prisma.$transaction([
-      prisma.$executeRaw(
-        Prisma.sql`DELETE FROM ppe.mritemize  WHERE (icsareno = ${parics});`
-      ),
-      prisma.$executeRaw(
-        Prisma.sql`DELETE FROM ppe.mrdetalyes WHERE (icsareno = ${parics});`
-      ),
-      prisma.$executeRaw(
-        Prisma.sql`DELETE FROM ppe.mrproperty WHERE (icsareno = ${parics});`
-      ),
-      prisma.$executeRaw(Prisma.sql`COMMIT;`), // Try adding an explicit commit
-    ]);
-    const totalDeleted = results.reduce((sum, count) => sum + count, 0);
+    // 2. Start the transaction
+    await client.query("BEGIN");
+
+    // 3. Execute your queries using the same client
+    // Note: Use $1, $2 etc. for parameterized queries to prevent SQL injection
+    const res1 = await client.query(
+      "DELETE FROM ppe.mritemize WHERE (icsareno = $1)",
+      [parics],
+    );
+    const res2 = await client.query(
+      "DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1)",
+      [parics],
+    );
+    const res3 = await client.query(
+      "DELETE FROM ppe.mrproperty WHERE (icsareno = $1)",
+      [parics],
+    );
+
+    // 4. Commit the transaction
+    await client.query("COMMIT");
+
+    const totalDeleted =
+      (res1.rowCount ?? 0) + (res2.rowCount ?? 0) + (res3.rowCount ?? 0);
     if (totalDeleted === 0) {
       return NextResponse.json(
         { error: `No receipt found with ICS/ARE ID ${parics}.` },
-        { status: 404 }
+        { status: 404 },
       );
     }
     return NextResponse.json(
       {
         message: `Receipt ${parics} and ${totalDeleted} related records successfully deleted.`,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (e) {
-    console.error("Prisma error:", e);
+    await client.query("ROLLBACK");
+    console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    client.release();
+    await pool.end();
     console.log("Querying Append finished.");
   }
 }

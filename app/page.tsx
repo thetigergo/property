@@ -20,7 +20,6 @@ const Login = () => {
     passkey: string;
   };
 
-  // const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
   const [activeTab, setActiveTab] = useState(0);
@@ -42,8 +41,7 @@ const Login = () => {
   const { nigamit, login } = useAuth(); // 👈 Get the global login function
 
   useEffect(() => {
-    if (nigamit) {
-      console.log("User already logged in:", nigamit);
+    if (nigamit !== null) {
       const rights = nigamit.permiso;
       const hasA = rights.includes("A");
       const hasB = rights.includes("B");
@@ -60,7 +58,6 @@ const Login = () => {
   }, [nigamit, router]);
 
   const onSubmit = async (data: LoginFormData) => {
-    // setFormData(data);
     setErrorMessage(""); // clear previous error
     setIsLoading(true);
 

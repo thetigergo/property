@@ -66,7 +66,7 @@ export default function ParIcsListing() {
   const toast = useRef<Toast>(null);
   const menuRef = useRef<Menu>(null);
 
-  const [anios, setAnois] = useState<number>(new Date().getFullYear());
+  const [anios, setAnios] = useState<number>(new Date().getFullYear());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [filters, setFilters] = useState<DataTableFilterMeta>(defaultFilters);
@@ -77,6 +77,10 @@ export default function ParIcsListing() {
   const router = useRouter();
 
   useEffect(() => {
+    // 1. Create the controller instance
+    const controller = new AbortController();
+    const { signal } = controller; // 2. Get the signal from the controller
+
     const fetchData = async () => {
       setIsLoading(true);
       try {
@@ -89,10 +93,12 @@ export default function ParIcsListing() {
         );*/
         const result = await axios.get("/property/api/departo/listing", {
           params: {
+            anios: anios,
             offcid: nigamit?.officeId,
           },
+          signal: signal, // 3. Pass the signal to the fetch/axios request
         });
-        if (result.status !== 200) {
+        /*if (result.status !== 200) {
           const message = result.statusText || "Unknown error";
           setErrorMessage(message);
           toast.current?.show({
@@ -102,11 +108,18 @@ export default function ParIcsListing() {
             life: 5000,
           });
           return;
-        }
+        }*/
         const data: PARICSData[] = result.data;
         setParicsData(data);
         initFilters();
       } catch (error) {
+        // 1. SILENTLY HANDLE ABORT: Do not show toasts for intentional cancellations
+        if (axios.isCancel(error)) {
+          console.log("Request canceled:", error.message);
+          return;
+        }
+
+        // 2. HANDLE REAL ERRORS
         console.error("Error loading data:", error);
         const fallbackMessage = "Failed to load Unfinished ICS/PAR list.";
         setErrorMessage(fallbackMessage);
@@ -121,55 +134,12 @@ export default function ParIcsListing() {
       }
     };
 
-    if (nigamit?.officeId) fetchData();
-  }, [nigamit?.officeId]);
-  const onYearChange = async (evt: InputNumberValueChangeEvent) => {
-    setIsLoading(true);
-    setParicsData([]);
-    try {
-      /*const result = await fetch(
-        `/property/api/departo/listing?offcid=${nigamit?.officeId}&anios=${evt.value}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        },
-      );*/
-      const result = await axios.get("/property/api/departo/listing", {
-        params: {
-          offcid: nigamit?.officeId,
-          anios: evt.value,
-        },
-      });
+    if (nigamit !== null) fetchData();
 
-      if (result.status !== 200) {
-        const message = result.statusText || "Unknown error";
-        setErrorMessage(message);
-        toast.current?.show({
-          severity: "error",
-          summary: "Load Error",
-          detail: message,
-          life: 5000,
-        });
-        return;
-      }
-      const data: PARICSData[] = result.data;
-      setParicsData(data);
-      initFilters();
-      setAnois(evt.value ?? 0);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      const fallbackMessage = "Failed to load Unfinished ICS/PAR list.";
-      setErrorMessage(fallbackMessage);
-      toast.current?.show({
-        severity: "error",
-        summary: "Load Error",
-        detail: fallbackMessage,
-        life: 5000,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // 3. THE CLEANUP: Essential for the AbortController to work
+    return () => controller.abort();
+  }, [nigamit, anios]);
+
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const _filters = { ...filters };
@@ -332,7 +302,8 @@ export default function ParIcsListing() {
             <InputNumber
               inputId="minmax-buttons"
               value={anios}
-              onValueChange={(e) => onYearChange(e)}
+              // onValueChange={(e) => onYearChange(e)}
+              onValueChange={(evt) => setAnios(evt.value ?? 0)}
               showButtons
               mode="decimal"
               min={1970}

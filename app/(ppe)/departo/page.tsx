@@ -18,6 +18,7 @@ import { IconField } from "primereact/iconfield";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
 import { Dialog } from "primereact/dialog";
 import { InputIcon } from "primereact/inputicon";
+import axios from "axios";
 
 interface Undone {
   icsareno: number;
@@ -72,32 +73,35 @@ export default function DepartoPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // 1. Create the controller instance
+    const controller = new AbortController();
+    const { signal } = controller; // 2. Get the signal from the controller
+
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const result = await fetch(
-          "/property/api/departo/undone/" + nigamit?.officeId,
+        /*const result = await fetch("/property/api/departo/undone/" + nigamit?.officeId,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
-        );
+        );*/
+        const result = await axios.get(
+          `/property/api/departo/undone/${nigamit?.officeId}`,
+          { signal: signal }, // 2. Pass the signal here
+        ); // Axios automatically parses JSON and throws for non-2xx status
 
-        if (!result.ok) {
-          const message = result.statusText || "Unknown error";
-          setErrorMessage(message);
-          toast.current?.show({
-            severity: "error",
-            summary: "Load Error",
-            detail: message,
-            life: 5000,
-          });
-          return;
-        }
-        const data: Undone[] = await result.json();
+        // Axios throws automatically for non-2xx, so result.status is likely 200 here
+        console.log("Data fetched successfully:", result.data);
+        const data: Undone[] = result.data;
         setUndone(data);
         initFilters();
       } catch (error) {
+        // 3. Handle the Abort error differently so it doesn't show a "Load Error" toast
+        if (axios.isCancel(error)) {
+          console.log("Request canceled:", error.message);
+          return; // Exit without showing error messages to the user
+        }
         console.error("Error loading data:", error);
         const fallbackMessage = "Failed to load Unfinished ICS/PAR list.";
         setErrorMessage(fallbackMessage);
@@ -108,11 +112,16 @@ export default function DepartoPage() {
           life: 5000,
         });
       } finally {
+        // 4. Only set loading to false if the request wasn't aborted
+        // (Optional: standard practice is to let it run, but helps prevent state updates on unmounted components)
         setIsLoading(false);
       }
     };
 
     if (nigamit?.officeId) fetchData();
+
+    // 5. THE CLEANUP: This runs when the component unmounts or officeId changes
+    return () => controller.abort();
   }, [nigamit?.officeId]);
 
   const dateShow = (rowData: Undone) => {
@@ -157,8 +166,7 @@ export default function DepartoPage() {
     {
       label: "Retrieve",
       icon: "pi pi-angle-double-up",
-      command: () =>
-        router.push(`/ppe/departo/modify/${selectedRow?.icsareno}`),
+      command: () => router.push(`/departo/modify/${selectedRow?.icsareno}`),
     },
     {
       label: "Delete",
@@ -171,14 +179,19 @@ export default function DepartoPage() {
     setEraseDialog(true);
   };
   const handleDelete = async () => {
+    // 1. Create the controller
+    const controller = new AbortController();
+    const { signal } = controller;
     try {
       const result = await fetch(`/property/api/departo/undone/${product}`, {
         method: "DELETE",
+        signal: signal, // 2. Pass the signal here
       });
 
       // if (!res.ok) throw new Error("Delete failed");
-      if (!result.ok) setErrorMessage("Deletion failed!");
-      else {
+      if (!result.ok) {
+        setErrorMessage("Deletion failed!");
+      } else {
         // Refresh local state
         setUndone((prev) => prev.filter((item) => item.icsareno !== product));
 

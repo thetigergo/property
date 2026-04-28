@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       userId: userid,
       pangalan: rowdata.pangalan,
       permiso: rowdata.permiso,
-      officeid: rowdata.offcid,
+      officeId: rowdata.offcid,
       offcode: rowdata.located,
       token: token,
     });
