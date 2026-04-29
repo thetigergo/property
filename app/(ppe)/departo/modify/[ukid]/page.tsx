@@ -895,7 +895,7 @@ export default function ModifyPage({
                         aria-multiline="true"
                         required
                         aria-required="true"
-                        className="w-[100%]"
+                        className="w-full"
                         onChange={(e) => setSpecific(e.target.value)}
                       />
                     </td>
@@ -1087,7 +1087,7 @@ export default function ModifyPage({
                         id="rank"
                         value={gotPerson?.designate ?? ""}
                         size={25}
-                        className="w-[100%]"
+                        className="w-full"
                         readOnly
                       />
                     </td>
@@ -1096,7 +1096,7 @@ export default function ModifyPage({
                         id="ango"
                         value={ranggo}
                         size={25}
-                        className="w-[100%]"
+                        className="w-full"
                         onChange={(e) => {
                           setRanggo(e.target.value);
                         }}
