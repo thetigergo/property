@@ -81,39 +81,7 @@ interface ItemizeData {
   icsareno: number;
   occurred: Date;
 }
-// function generateItemizeRecords(
-//   kabtangan: string,
-//   kabook: number,
-//   nextno: number,
-//   IcsAreNo: number,
-//   offcCode: string,
-// ): ItemizeData[] {
-//   const oneByone = kabtangan.substring(0, 11) + "-";
-//   const initialTimestamp = new Date().getTime();
 
-//   // Create a new array using Array.from and map for the loop
-//   const recordsArray = Array.from({ length: kabook }, (_, index) => {
-//     // 1. Generate the sequential number (Java's DecimalFormat("0000"))
-//     const currentSequence = nextno + index;
-//     // 💡 Note: Using a DecimalFormat library or custom padding function is needed
-//     // to replicate the '0000' formatting accurately in TypeScript.
-//     const numero = String(currentSequence).padStart(4, "0");
-
-//     // 2. Calculate the unique peritems code
-//     const peritems = oneByone + numero + "-" + offcCode;
-
-//     // 3. Calculate the unique timestamp (by incrementing the milliseconds)
-//     const occurredDate = new Date(initialTimestamp + index);
-
-//     return {
-//       property: kabtangan,
-//       peritems: peritems,
-//       icsareno: IcsAreNo,
-//       occurred: occurredDate,
-//     };
-//   });
-//   return recordsArray;
-// }
 // 1. IMPROVED GENERATOR
 function generateItemizeRecords(
   kabtangan: string,
