@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function GET(
   req: NextRequest,
@@ -14,11 +14,6 @@ export async function GET(
       { error: "Invalid User ID format." },
       { status: 400 },
     );
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const result = await pool.query<{
@@ -65,7 +60,6 @@ export async function GET(
     console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Propertymain finished.");
   }
 }

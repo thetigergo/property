@@ -221,17 +221,52 @@ export default function EntryPage() {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const loadCategories = async () => {
-      const result = await fetch("/property/api/departo/receipt/loadcats", {
+      /*const result = await fetch("/property/api/departo/receipt/loadcats", {
         method: "GET",
-      });
-      if (!result.ok) throw new Error(`HTTP error! status: ${result.status}`);
-      const data: Category[] = await result.json();
-      setGrpCategory(groupCategory(data));
+      });*/
+      try {
+        const result = await axios.get(
+          "/property/api/departo/receipt/loadcats",
+          {
+            signal,
+          },
+        );
+        //if (result.status !== 200) throw new Error(`HTTP error! status: ${result.status}`);
+
+        const data: Category[] = result.data;
+        setGrpCategory(groupCategory(data));
+      } catch (error) {
+        if (axios.isCancel(error)) {
+          // Do nothing here!
+          // We don't want to show a toast for a normal cleanup.
+          console.log("Request cleaned up (component unmounted)");
+        } else {
+          const mensahe =
+            error instanceof Error
+              ? error.message
+              : "Failed to load categories.";
+          toast.current?.show({
+            severity: "error",
+            summary: "Request Canceled!",
+            detail: mensahe,
+            life: 5000,
+          });
+        }
+      }
     };
     loadCategories();
+
+    //THE CLEANUP: This runs when the component unmounts or officeId changes
+    return () => controller.abort();
   }, []);
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const loadUnits = async (category: OptionDetail | null) => {
       if (!category) {
         setUnitOptions([]);
@@ -239,16 +274,23 @@ export default function EntryPage() {
       }
 
       try {
-        const result = await fetch(
+        /*const result = await fetch(
           `/property/api/departo/receipt/loadunit?catgid=${category.value}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
+        );*/
+        const result = await axios.get(
+          "/property/api/departo/receipt/loadunit",
+          {
+            params: { catgid: category.value },
+            signal,
+          },
         );
-        // if (!result.ok) throw new Error(`HTTP error! status: ${result.status}`);
+        //if (result.status !== 200) throw new Error(`HTTP error! status: ${result.status}`);
 
-        const data: Optionz[] = await result.json();
+        const data: Optionz[] = result.data;
         if (!data || data.length === 0) {
           setMyPlaceholder("No details available");
           setUnitOptions([]);
@@ -257,13 +299,32 @@ export default function EntryPage() {
           setUnitOptions(optionGroup(data));
         }
       } catch (error) {
-        console.error("Failed to load units:", error);
+        if (axios.isCancel(error)) {
+          // Do nothing here!
+          // We don't want to show a toast for a normal cleanup.
+          console.log("Request cleaned up (component unmounted)");
+        } else {
+          const mensahe =
+            error instanceof Error ? error.message : "Failed to load units.";
+          toast.current?.show({
+            severity: "error",
+            summary: "Request Canceled!",
+            detail: mensahe,
+            life: 5000,
+          });
+        }
       }
     };
 
     loadUnits(pickedCats);
+
+    //THE CLEANUP: This runs when the component unmounts or officeId changes
+    return () => controller.abort();
   }, [pickedCats]);
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     async function fetchEmployee() {
       if (!nigamit?.officeId) {
         setEmployees([]);
@@ -271,14 +332,21 @@ export default function EntryPage() {
       }
 
       try {
-        const result = await fetch(
+        /*const result = await fetch(
           `/property/api/departo/receipt/employee?offcid=${nigamit.officeId}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
+        );*/
+        const result = await axios.get(
+          "/property/api/departo/receipt/employee",
+          {
+            params: { offcid: nigamit.officeId },
+            signal,
+          },
         );
-        const data = await result.json();
+        const data = result.data;
         const emplist: Employee[] = data.map((item: Employee) => ({
           humane: item.humane,
           empkey: item.empkey,
@@ -287,12 +355,30 @@ export default function EntryPage() {
 
         setEmployees(emplist);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        if (axios.isCancel(error)) {
+          // Do nothing here!
+          // We don't want to show a toast for a normal cleanup.
+          console.log("Request cleaned up (component unmounted)");
+        } else {
+          const mensahe =
+            error instanceof Error
+              ? error.message
+              : "Failed to load employees.";
+          toast.current?.show({
+            severity: "error",
+            summary: "Request Canceled!",
+            detail: mensahe,
+            life: 5000,
+          });
+        }
       }
     }
 
     fetchEmployee();
-  }, [nigamit?.officeId]); // Re-run when nigamit?.officeId changes
+
+    //THE CLEANUP: This runs when the component unmounts or officeId changes
+    return () => controller.abort();
+  }, [nigamit]); // Re-run when nigamit?.officeId changes
 
   const onRowEditComplete = async (producto: Listahan) => {
     const butang = [...dataList];
@@ -494,7 +580,8 @@ export default function EntryPage() {
                     result = await axios.get("/property/api/departo/receipt", {
                       params: { anios: tuiga, type: "icsare", petsa: bulan },
                     });
-                    data = await result.data();
+                    console.log("ICS/ARE fetch result:", result);
+                    data = result.data;
                     parics = parseInt(tuiga + bulan + data.icsareno, 10);
                     setIcsAre(parics);
                   }
@@ -510,7 +597,7 @@ export default function EntryPage() {
                   result = await axios.get("/property/api/departo/receipt", {
                     params: { anios: tuiga, expcode: pickedCats?.value },
                   });
-                  data = await result.data();
+                  data = result.data;
                   const orderno = data.icsareno;
 
                   // Fetch the Threshold for the given date
@@ -524,7 +611,7 @@ export default function EntryPage() {
                   result = await axios.get("/property/api/departo/receipt", {
                     params: { anios: tuiga, petsa: petsa.dawat?.getTime() },
                   });
-                  data = await result.data();
+                  data = result.data;
                   const threshold = data.icsareno;
 
                   // Check if the payload is ready (using the variables defined above)

@@ -3,7 +3,7 @@ import "dotenv/config";
  * app\api\departo\emplist\[offcid]\route.ts
  */
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function GET(
   req: NextRequest,
@@ -15,11 +15,6 @@ export async function GET(
       { error: "Invalid parameter format." },
       { status: 400 },
     );
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     if (offcid.startsWith("#")) {
@@ -73,7 +68,6 @@ export async function GET(
     console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Employee's List finished.");
   }
 }

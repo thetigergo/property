@@ -2,7 +2,7 @@ import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
 import { receiptSchema, schemaTab1, schemaTab2 } from "@/schemas/receiptCase"; // Import the new schema
 import { z } from "zod";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -15,11 +15,6 @@ export async function GET(req: NextRequest) {
       { error: "Missing 'anios' parameter" },
       { status: 400 },
     );
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     if (anios && typed === "icsare") {
@@ -76,7 +71,6 @@ export async function GET(req: NextRequest) {
     console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Append finished.");
   }
 }
@@ -87,38 +81,64 @@ interface ItemizeData {
   icsareno: number;
   occurred: Date;
 }
+// function generateItemizeRecords(
+//   kabtangan: string,
+//   kabook: number,
+//   nextno: number,
+//   IcsAreNo: number,
+//   offcCode: string,
+// ): ItemizeData[] {
+//   const oneByone = kabtangan.substring(0, 11) + "-";
+//   const initialTimestamp = new Date().getTime();
+
+//   // Create a new array using Array.from and map for the loop
+//   const recordsArray = Array.from({ length: kabook }, (_, index) => {
+//     // 1. Generate the sequential number (Java's DecimalFormat("0000"))
+//     const currentSequence = nextno + index;
+//     // 💡 Note: Using a DecimalFormat library or custom padding function is needed
+//     // to replicate the '0000' formatting accurately in TypeScript.
+//     const numero = String(currentSequence).padStart(4, "0");
+
+//     // 2. Calculate the unique peritems code
+//     const peritems = oneByone + numero + "-" + offcCode;
+
+//     // 3. Calculate the unique timestamp (by incrementing the milliseconds)
+//     const occurredDate = new Date(initialTimestamp + index);
+
+//     return {
+//       property: kabtangan,
+//       peritems: peritems,
+//       icsareno: IcsAreNo,
+//       occurred: occurredDate,
+//     };
+//   });
+//   return recordsArray;
+// }
+// 1. IMPROVED GENERATOR
 function generateItemizeRecords(
   kabtangan: string,
   kabook: number,
   nextno: number,
-  IcsAreNo: number,
+  icsAreNo: number, // Use camelCase consistently
   offcCode: string,
 ): ItemizeData[] {
-  const oneByone = kabtangan.substring(0, 11) + "-";
-  const initialTimestamp = new Date().getTime();
+  // Ensure we don't crash if string is short
+  const prefix =
+    kabtangan.length >= 11 ? kabtangan.substring(0, 11) : kabtangan;
+  const oneByone = `${prefix}-`;
+  const initialTimestamp = Date.now();
 
-  // Create a new array using Array.from and map for the loop
-  const recordsArray = Array.from({ length: kabook }, (_, index) => {
-    // 1. Generate the sequential number (Java's DecimalFormat("0000"))
-    const currentSequence = nextno + index;
-    // 💡 Note: Using a DecimalFormat library or custom padding function is needed
-    // to replicate the '0000' formatting accurately in TypeScript.
-    const numero = String(currentSequence).padStart(4, "0");
-
-    // 2. Calculate the unique peritems code
-    const peritems = oneByone + numero + "-" + offcCode;
-
-    // 3. Calculate the unique timestamp (by incrementing the milliseconds)
-    const occurredDate = new Date(initialTimestamp + index);
+  return Array.from({ length: kabook }, (_, index) => {
+    const numero = String(nextno + index).padStart(4, "0");
+    const peritems = `${oneByone}${numero}-${offcCode}`;
 
     return {
       property: kabtangan,
       peritems: peritems,
-      icsareno: IcsAreNo,
-      occurred: occurredDate,
+      icsareno: icsAreNo,
+      occurred: new Date(initialTimestamp + index),
     };
   });
-  return recordsArray;
 }
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -136,12 +156,7 @@ export async function POST(req: NextRequest) {
 
   const { activo, ...data } = validation.data;
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
   const client = await pool.connect();
-
   try {
     // 🔑 Key: Use the $transaction method
 
@@ -153,23 +168,14 @@ export async function POST(req: NextRequest) {
       const tab1Data = data as z.infer<typeof schemaTab1>;
 
       // ➡️ OPERATION 1: Create the main receipt record
-      let mainRecord = await client.query(
+      const mainRecord = await client.query(
         "SELECT icsareno FROM ppe.mrproperty WHERE (icsareno = $1)",
         [tab1Data.icsareno],
       );
       if (mainRecord.rowCount === 0) {
         const petsa = new Date(tab1Data.preparar).getTime();
         const maked = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
-        /*mainRecord = await tx.mrproperty.create({
-          data: {
-            icsareno: tab1Data.icsareno,
-            preparar: maked ? new Date(maked) : new Date(),
-            opesina: tab1Data.opesina,
-            expcode: tab1Data.expcode,
-            user_id: tab1Data.userid,
-          },
-        });*/
-        mainRecord = await client.query(
+        await client.query(
           "INSERT INTO ppe.mrproperty (icsareno, preparar, opesina, expcode, user_id) VALUES ($1, $2, $3, $4, $5);",
           [
             tab1Data.icsareno,
@@ -185,24 +191,7 @@ export async function POST(req: NextRequest) {
       // This operation depends on the success of the first one.
       const petsa = new Date(tab1Data.acquired).getTime();
       const nakuha = petsa + 24 * 60 * 60 * 1000; // Add 1 day in milliseconds
-      /*const detailRecord = await tx.mrdetalyes.create({
-        data: {
-          icsareno: tab1Data.icsareno,
-          catdtld: tab1Data.catdetl,
-          quantiy: tab1Data.kabook,
-          issued: tab1Data.prefixed,
-          specifyd: tab1Data.specific,
-          unitcost: tab1Data.costing ?? 0,
-          itemno: 0,
-          acquired: nakuha ? new Date(nakuha) : new Date(),
-          uselife: tab1Data.lifespan,
-          property: tab1Data.butang,
-          acronyear: tab1Data.acronym,
-          lastseq: tab1Data.lastseq,
-          acknowledge: tab1Data.thresh,
-        },
-      });*/
-      const detailRecord = await client.query(
+      await client.query(
         "INSERT INTO ppe.mrdetalyes (icsareno, catdtld, quantiy, issued, specifyd, unitcost, itemno, acquired, uselife, property, acronyear, lastseq, acknowledge) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);",
         [
           tab1Data.icsareno,
@@ -221,6 +210,14 @@ export async function POST(req: NextRequest) {
         ],
       );
 
+      /*const detailsArray = generateItemizeRecords(
+        tab1Data.butang,
+        tab1Data.kabook,
+        tab1Data.lastseq - tab1Data.kabook + 1,
+        tab1Data.icsareno,
+        tab1Data.acronym.substring(0, 3),
+      );*/
+      // 2. THE CORRECTED QUERY LOGIC
       const detailsArray = generateItemizeRecords(
         tab1Data.butang,
         tab1Data.kabook,
@@ -233,7 +230,19 @@ export async function POST(req: NextRequest) {
       /*const itemizeResult = await tx.mritemize.createMany({
         data: detailsArray,
       });*/
-      const itemizeResult = await client.query(
+      /**
+       * To insert multiple rows, we map the objects to a flat array
+       * and build a string like ($1, $2, $3, $4), ($5, $6, $7, $8)...
+       */
+      const values: (string | number | Date)[] = [];
+      const placeholders = detailsArray
+        .map((_, i) => {
+          const offset = i * 4;
+          values.push(_.property, _.peritems, _.icsareno, _.occurred);
+          return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4})`;
+        })
+        .join(",");
+      /*const itemizeResult = await client.query(
         "INSERT INTO ppe.mritemize (property, peritems, icsareno, occurred) VALUES ($1, $2, $3, $4);",
         detailsArray.map((record) => [
           record.property,
@@ -241,29 +250,14 @@ export async function POST(req: NextRequest) {
           record.icsareno,
           record.occurred,
         ]),
-      );
+      );*/
+      const queryText = `INSERT INTO ppe.mritemize (property, peritems, icsareno, occurred) VALUES ${placeholders};`;
+      await client.query(queryText, values);
 
       // Explicitly commit the transaction
       await client.query("COMMIT");
-
-      // Return data from the transaction block
-      return {
-        centro: mainRecord,
-        detail: detailRecord,
-        itemize: itemizeResult.rowCount,
-      };
     } else {
       const tab2Data = data as z.infer<typeof schemaTab2>;
-      /*const mainRecord = await tx.mrproperty.update({
-        where: { icsareno: tab2Data.icsareno },
-        data: {
-          empkey: tab2Data.empkey,
-          designate: tab2Data.designate,
-          details: tab2Data.details,
-          nagdawat: tab2Data.nagdawat,
-          ranggo: tab2Data.ranggo,
-        },
-      });*/
 
       await client.query("BEGIN"); // Start a new transaction for the update
       await client.query(
@@ -303,7 +297,6 @@ export async function POST(req: NextRequest) {
     );
   } finally {
     client.release(); // Release the client back to the pool
-    await pool.end();
     console.log("Transaction process finished.");
   }
 }

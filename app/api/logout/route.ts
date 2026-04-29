@@ -1,20 +1,12 @@
 import "dotenv/config";
-import { Pool } from "pg";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-// const prisma = new PrismaClient().$extends(withAccelerate());
-// const AUTH_COOKIE_KEY = "auth_token";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies(); // ✅ Await this in Next.js 14+
   const body = await req.json();
   const { userid } = body;
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const userLog = await pool.query(
@@ -38,6 +30,7 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    await pool.end();
+    // Ensure the pool is closed after the operation
+    if (pool && !pool.ended) await pool.end();
   }
 }

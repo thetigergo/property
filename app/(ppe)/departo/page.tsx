@@ -104,21 +104,19 @@ export default function DepartoPage() {
       } catch (error) {
         // 3. Handle the Abort error differently so it doesn't show a "Load Error" toast
         if (axios.isCancel(error)) {
-          console.log("Request canceled:", error.message);
-          toast.current?.show({
-            severity: "error",
-            summary: "Request Canceled!",
-            detail: error.message,
-            life: 5000,
-          });
-          return; // Exit without showing error messages to the user
+          // Do nothing here!
+          // We don't want to show a toast for a normal cleanup.
+          console.log("Request cleaned up (component unmounted)");
         } else {
-          const fallbackMessage = "Failed to load Unfinished ICS/PAR list.";
-          setErrorMessage(fallbackMessage);
+          const mensahe =
+            error instanceof Error
+              ? error.message
+              : "Failed to load Unfinished ICS/PAR list.";
+          setErrorMessage(mensahe);
           toast.current?.show({
             severity: "error",
             summary: "Load Error",
-            detail: fallbackMessage,
+            detail: mensahe,
             life: 5000,
           });
         }
@@ -129,11 +127,12 @@ export default function DepartoPage() {
       }
     };
 
-    if (nigamit?.officeId && isLoading) fetchData();
+    if (nigamit?.officeId !== undefined || nigamit?.officeId !== null)
+      fetchData();
 
     // 5. THE CLEANUP: This runs when the component unmounts or officeId changes
     return () => controller.abort();
-  }, [nigamit?.officeId, isLoading]);
+  }, [nigamit]);
 
   const dateShow = (rowData: Undone) => {
     return formatDate(new Date(rowData.preparar));
@@ -200,7 +199,7 @@ export default function DepartoPage() {
       });
 
       // if (!res.ok) throw new Error("Delete failed");
-      if (!result.ok) {
+      if (result.status !== 200) {
         setErrorMessage("Deletion failed!");
       } else {
         // Refresh local state

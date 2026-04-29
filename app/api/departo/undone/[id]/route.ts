@@ -3,7 +3,7 @@
  */
 import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function GET(
   req: NextRequest,
@@ -11,10 +11,14 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
+  /**
+// This is GREAT. The pool manages the connections for you.
+const [categories, items, settings] = await Promise.all([
+  pool.query("SELECT * FROM ppe.categories"),
+  pool.query("SELECT * FROM ppe.mritemize LIMIT 10"),
+  pool.query("SELECT * FROM ppe.settings WHERE id = 1")
+]);
+*/
 
   try {
     const undone = await pool.query(
@@ -34,8 +38,6 @@ export async function GET(
         mrproperty.preparar ASC;`,
       [id],
     );
-    if (undone.rowCount === 0)
-      return NextResponse.json({ error: "Record not found" }, { status: 404 });
 
     return NextResponse.json(
       undone.rows.map((item) => ({
@@ -50,7 +52,6 @@ export async function GET(
     console.error("PPE Error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Undone finished.");
   }
 }
@@ -62,11 +63,6 @@ export async function DELETE(
   const { id } = await params;
   const parics = parseInt(id, 10);
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
   // 1. Get a dedicated client from the pool for the transaction
   const client = await pool.connect();
   try {
@@ -75,15 +71,24 @@ export async function DELETE(
 
     // 3. Execute your queries using the same client
     // Note: Use $1, $2 etc. for parameterized queries to prevent SQL injection
-    const [res1, res2, res3] = await Promise.all([
+    /*const [res1, res2, res3] = await Promise.all([
       client.query("DELETE FROM ppe.mritemize WHERE (icsareno = $1)", [parics]),
-      client.query("DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1)", [
-        parics,
-      ]),
-      client.query("DELETE FROM ppe.mrproperty WHERE (icsareno = $1)", [
-        parics,
-      ]),
-    ]);
+      client.query("DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1)", [parics,]),
+      client.query("DELETE FROM ppe.mrproperty WHERE (icsareno = $1)", [parics,]),
+    ]);*/
+    // Execute sequentially instead of using Promise.all
+    const res1 = await client.query(
+      "DELETE FROM ppe.mritemize WHERE (icsareno = $1)",
+      [parics],
+    );
+    const res2 = await client.query(
+      "DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1)",
+      [parics],
+    );
+    const res3 = await client.query(
+      "DELETE FROM ppe.mrproperty WHERE (icsareno = $1)",
+      [parics],
+    );
 
     // 4. Commit the transaction
     await client.query("COMMIT");
@@ -106,7 +111,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
     client.release();
-    await pool.end();
     console.log("Querying Append finished.");
   }
 }

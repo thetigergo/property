@@ -2,7 +2,7 @@ import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
 // import { PrismaClient } from "@/generated/prisma/client";
 // import { withAccelerate } from "@prisma/extension-accelerate";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 import { makeToken } from "@/libs/tokenizer";
 
 // const prisma = new PrismaClient().$extends(withAccelerate());
@@ -21,11 +21,6 @@ export async function POST(req: NextRequest) {
     where: { userid },
     include: { offices: true },
     });*/
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const userLog = await pool.query(
@@ -95,8 +90,6 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    //await prisma.$disconnect();
-    await pool.end();
     console.log("Querying Login finished.");
   }
 }

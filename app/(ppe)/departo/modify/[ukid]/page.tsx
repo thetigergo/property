@@ -21,6 +21,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Menu } from "primereact/menu";
 import { Dialog } from "primereact/dialog";
+import axios from "axios";
 
 /*export default function ModifyPage() {
   const searchParams = useSearchParams();
@@ -138,66 +139,86 @@ export default function ModifyPage({
     const fetchData = async () => {
       setLoading(true);
       try {
-        let result = await fetch(`/property/api/departo/modify/${ukid}`, {
+        /*let result = await fetch(`/property/api/departo/modify/${ukid}`, {
+          method: "GET",
+        });*/
+        // Axios version
+        let result = await axios.get(`/property/api/departo/modify/${ukid}`);
+        //if (!result.ok) throw new Error(`HTTP error! status: ${result.status}`);
+
+        let data: MainThing;
+        if (result.data) {
+          data = result.data;
+          setIcsAreNo(parseInt(ukid, 10));
+          setBuhat(data.preparar);
+          setEmpKey(data.empkey ?? "");
+          setOpesina(data.opesina ?? "");
+          setExpCode(data.expcode);
+          setExpDesc(data.expdesc);
+          setDetalye(data.details ?? "");
+          setNagdawat(data.nagdawat ?? "");
+          setRanggo(data.ranggo ?? "");
+        } else {
+          data = {} as MainThing;
+        }
+        /*result = await fetch(`/property/api/departo/receipt/datalist/${ukid}`, {
           method: "GET",
         });
-        if (!result.ok) throw new Error(`HTTP error! status: ${result.status}`);
-
-        const data: MainThing = await result.json();
-        setIcsAreNo(parseInt(ukid, 10));
-        setBuhat(data.preparar);
-        setEmpKey(data.empkey ?? "");
-        setOpesina(data.opesina ?? "");
-        setExpCode(data.expcode);
-        setExpDesc(data.expdesc);
-        setDetalye(data.details ?? "");
-        setNagdawat(data.nagdawat ?? "");
-        setRanggo(data.ranggo ?? "");
-
-        result = await fetch(`/property/api/departo/receipt/datalist/${ukid}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!result.ok) setErrorMessage("Failed to fetch data list.");
-        const datum: Listahan[] = await result.json();
-        setDataList(datum);
-        setDisableDelete(datum.length === 1);
-
+        if (!result.ok) setErrorMessage("Failed to fetch data list.");*/
+        result = await axios.get(
+          `/property/api/departo/receipt/datalist/${ukid}`,
+        );
+        if (result.data) {
+          const datum: Listahan[] = await result.data;
+          setDataList(datum);
+          setDisableDelete(datum.length === 1);
+        }
         if (!opesina) {
           setEmployees([]);
           return;
         }
-        result = await fetch(
+        /*result = await fetch(
           `/property/api/departo/receipt/employee?offcid=${opesina}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
-        );
-        const datos = await result.json();
-        const emplist: Employee[] = datos.map((item: Employee) => ({
-          humane: item.humane,
-          empkey: item.empkey,
-          designate: item.designate,
-        }));
-        setEmployees(emplist);
+        );*/
+        result = await axios.get("/property/api/departo/receipt/employee", {
+          params: { offcid: opesina },
+        });
 
-        const initEmp: Employee = emplist.find((p) => p.empkey === empKey)!;
-        if (initEmp) setPersona(initEmp);
+        if (result.data) {
+          const datos = await result.data;
+          const emplist: Employee[] = datos.map((item: Employee) => ({
+            humane: item.humane,
+            empkey: item.empkey,
+            designate: item.designate,
+          }));
+          setEmployees(emplist);
+
+          const initEmp: Employee = emplist.find((p) => p.empkey === empKey)!;
+          if (initEmp) setPersona(initEmp);
+        }
 
         if (!expcode) {
           setUnitOptions([]);
           return;
         }
-        result = await fetch(
+        /*result = await fetch(
           `/property/api/departo/receipt/loadunit?catgid=${expcode}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           },
-        );
-        const subcat: Optionz[] = await result.json();
-        if (!data || subcat.length === 0) {
+        );*/
+        result = await axios.get("/property/api/departo/receipt/loadunit", {
+          params: { catgid: expcode },
+        });
+
+        const length = Object.keys(data).length;
+        const subcat: Optionz[] = await result.data;
+        if (length === 0 || subcat.length === 0) {
           setMyPlaceholder("No details available");
           setUnitOptions([]);
         } else {
@@ -425,7 +446,7 @@ export default function ModifyPage({
       <Toast ref={toast} />
       <Fieldset
         legend="ICS/PAR Modify Form"
-        className="h-auto min-w-[1024px] max-w-[1024px] max-h-[900px]"
+        className="h-auto w-full max-w-7xl max-h-[900px]"
       >
         <TabView>
           <TabPanel header="Receipt Modify Form">
@@ -1194,6 +1215,7 @@ export default function ModifyPage({
                     text
                     className="mr-2"
                     onClick={() => {
+                      console.log("Issued:", rowData.issued);
                       const dataLoad = {
                         catdtld: rowData.catdtld,
                         quantiy: rowData.quantiy,
@@ -1325,7 +1347,7 @@ export default function ModifyPage({
             aria-multiline="true"
             required
             aria-required="true"
-            className="w-[100%]"
+            className="w-full mt-2"
             // onChange={(e) => setSpecific(e.target.value)}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
               onInputTextAreaChange(e, "specifyd")

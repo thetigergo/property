@@ -1,12 +1,8 @@
 import "dotenv/config";
 import { /*NextRequest,*/ NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function GET() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
   try {
     const result = await pool.query<{
       cat_id: string;
@@ -37,7 +33,6 @@ export async function GET() {
     console.error("PPE Error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Loading Category finished.");
   }
 }

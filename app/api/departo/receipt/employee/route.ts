@@ -1,15 +1,10 @@
 import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const offcId = searchParams.get("offcid");
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const result = await pool.query<{
@@ -40,7 +35,6 @@ export async function GET(req: NextRequest) {
     console.error("Prisma error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Employee finished.");
   }
 }

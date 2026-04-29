@@ -2,18 +2,13 @@ import "dotenv/config";
 /**
  * app\api\departo\listing\route.ts
  */
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const anios = searchParams.get("anios");
   const offcid = searchParams.get("offcid");
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   if (!anios || !offcid)
     return NextResponse.json(
@@ -59,7 +54,6 @@ export async function GET(req: NextRequest) {
     console.error("Prisma error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Listing finished.");
   }
 }

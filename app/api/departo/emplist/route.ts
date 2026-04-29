@@ -5,7 +5,7 @@ import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
 import { baseEmps } from "@/schemas/properties";
 import { z } from "zod";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function PUT(req: NextRequest) {
   const body = await req.json();
@@ -19,11 +19,6 @@ export async function PUT(req: NextRequest) {
     );
   }
   const { ...datum } = validate.data;
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const sulod = datum as z.infer<typeof baseEmps>;
@@ -66,11 +61,6 @@ export async function DELETE(req: NextRequest) {
       { status: 400 },
     );
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
   try {
     const result = await pool.query(
       "DELETE FROM ppe.employees WHERE (empkey = $1);",
@@ -86,7 +76,6 @@ export async function DELETE(req: NextRequest) {
     console.error("Prisma error:", e);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Deleting employee finished.");
   }
 }
@@ -101,11 +90,6 @@ export async function POST(req: NextRequest) {
     );
   }
   const { ...datum } = validate.data;
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const sulod = datum as z.infer<typeof baseEmps>;
@@ -130,7 +114,6 @@ export async function POST(req: NextRequest) {
     console.error("Prisma error:", e);
     return NextResponse.json({ error: "Failed to create" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Creation employee finished.");
   }
 }

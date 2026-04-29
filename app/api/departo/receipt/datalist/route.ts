@@ -6,25 +6,19 @@ import "dotenv/config";
 import { NextRequest, NextResponse } from "next/server";
 import { baseFields } from "@/schemas/properties";
 import { z } from "zod";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 export async function PUT(req: NextRequest) {
   const body = await req.json();
 
   const validate = baseFields.safeParse(body);
   if (!validate.success) {
-    //console.error("Zod validation error:", validate.error);
     return NextResponse.json(
       { message: "Missing required fields" },
       { status: 400 },
     );
   }
   const { ...datum } = validate.data;
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
 
   try {
     const sulod = datum as z.infer<typeof baseFields>;
@@ -52,7 +46,6 @@ export async function PUT(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    await pool.end();
     console.log("Updating Property finished.");
   }
 }
@@ -67,26 +60,20 @@ export async function DELETE(req: NextRequest) {
       { status: 400 },
     );
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
+  const client = await pool.connect();
   try {
     const paricsNum = parseInt(parics, 10);
 
-    await pool.query("BEGIN"); // Start a transaction
-    const [itemizeResult, detalyesResult] = await Promise.all([
-      pool.query(
-        "DELETE FROM ppe.mritemize WHERE (property = $1 AND icsareno = $2)",
-        [things, paricsNum],
-      ),
-      pool.query(
-        "DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1 AND property = $2)",
-        [paricsNum, things],
-      ),
-    ]);
-    await pool.query("COMMIT"); // Commit the transaction
+    await client.query("BEGIN"); // Start a transaction
+    const itemizeResult = await client.query(
+      "DELETE FROM ppe.mritemize WHERE (property = $1 AND icsareno = $2)",
+      [things, paricsNum],
+    );
+    const detalyesResult = await client.query(
+      "DELETE FROM ppe.mrdetalyes WHERE (icsareno = $1 AND property = $2)",
+      [paricsNum, things],
+    );
+    await client.query("COMMIT"); // Commit the transaction
 
     const totalDeleted =
       (itemizeResult.rowCount ?? 0) + (detalyesResult.rowCount ?? 0);
@@ -97,11 +84,11 @@ export async function DELETE(req: NextRequest) {
       { status: 200 },
     );
   } catch (e) {
-    await pool.query("ROLLBACK"); // Rollback the transaction on error
+    await client.query("ROLLBACK"); // Rollback the transaction on error
     console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   } finally {
-    await pool.end();
+    client.release();
     console.log("Deleting property finished.");
   }
 }

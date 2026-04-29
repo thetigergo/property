@@ -3,7 +3,7 @@ import "dotenv/config";
  * app\api\departo\receipt\datalist\[id]\route.ts
  */
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/libs/pgdb"; // Use the shared pool
 
 // 1. Define the correct arguments for the handler
 //    The first argument is the request object (NextRequest)
@@ -12,11 +12,6 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
   try {
     const { id } = await params;
     const parics = parseInt(id);
@@ -61,7 +56,7 @@ export async function GET(
       result.rows.map((item) => ({
         catdtld: item.catdtld,
         quantiy: item.quantiy,
-        issued: item.issued,
+        issued: item.issued.trim(),
         detalye: item.detalye,
         specifyd: item.specifyd,
         unitcost: item.unitcost,
@@ -75,7 +70,6 @@ export async function GET(
     console.error("Database error:", e);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   } finally {
-    await pool.end();
     console.log("Querying Employee finished.");
   }
 }
